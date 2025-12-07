@@ -1,3 +1,91 @@
-build
-debug
-dist
+# Build directories
+build/
+debug/
+dist/
+nbproject/private/
+
+# MPLAB X IDE files
+*.o
+*.d
+*.elf
+*.hex
+*.map
+*.sym
+*.cof
+*.lst
+*.obj
+*.i
+*.s
+*.pre
+*.p1
+*.rlf
+*.sdb
+*.obj.dmp
+
+# Compiler generated files
+*.hxl
+*.cod
+*.mcs
+*.mcp
+*.mptags
+*.xml.backup
+
+# Debug files
+*.delf
+*.esym
+
+# Temporary files
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Editor backup files
+*~
+\#*\#
+.#*
+
+# Python (if any tools are added)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+
+# Documentation build artifacts
+docs/_build/
+*.pdf
+
+# Simulation files
+*.mcs
+*.cof
+
+# Test artifacts
+test_results/
+*.test
+
+# Personal notes (not to be committed)
+NOTES.md
+TODO.md
+notes/
+scratch/

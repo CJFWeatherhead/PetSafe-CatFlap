@@ -1,25 +1,35 @@
 # Contributing to PetSafe Cat Flap Firmware
 
-Thank you for your interest in contributing to this project! This document provides guidelines and information for contributors.
+Thank you for your interest in this project!
 
-## Table of Contents
+## Important: Project Scope and Maintenance
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-- [Development Setup](#development-setup)
-- [Coding Standards](#coding-standards)
-- [Submitting Changes](#submitting-changes)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Community](#community)
+**This is a documentation-focused fork** of the original project. Please understand:
 
-## Code of Conduct
+- **Not in active development**: No new features are planned
+- **Limited maintenance**: No long-term maintenance commitment
+- **No responsibility**: The repository owner does not take responsibility for this codebase
+- **Original testing only**: Code was tested by the original developer on **rev.X4 hardware only**
+- **Fork status**: This fork has **not been tested** on any hardware
 
-This project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to the project maintainers.
+## Acceptable Contributions
 
-## How Can I Contribute?
+We welcome **limited** contributions in these areas:
 
-### Reporting Bugs
+1. **Bug Fixes**: Code corrections for identified issues
+2. **Testing Reports**: Share your testing results on different hardware revisions
+3. **Documentation**: Corrections and clarifications to existing documentation
+
+## Not Accepting
+
+- New features or enhancements
+- Architectural changes
+- Support for different microcontrollers
+- Major refactoring
+
+If you want to add significant features, please consider forking the project.
+
+## Reporting Bugs
 
 Before creating bug reports, please check existing issues to avoid duplicates.
 
@@ -27,40 +37,44 @@ Before creating bug reports, please check existing issues to avoid duplicates.
 
 - **Clear title and description**
 - **Steps to reproduce** the issue
-- **Expected behavior** vs. actual behavior
 - **Hardware configuration**:
+  - PCB revision (X4, X5, etc.)
   - PIC programmer model
-  - PCB revision
   - Any modifications made
 - **Software versions**:
   - MPLAB X IDE version
   - XC8 compiler version
   - Firmware commit hash
+- **Expected behavior** vs. actual behavior
 - **Error messages** or unusual behavior
 - **Photos or screenshots** if relevant
 - **Serial output** if available
 
-### Suggesting Enhancements
+## Sharing Testing Reports
 
-Enhancement suggestions are welcome! Please provide:
+Testing reports are highly valuable! Please open an issue with:
 
-- **Clear description** of the feature
-- **Use case**: Why is this useful?
-- **Implementation ideas** (if you have any)
-- **Potential drawbacks** or considerations
-- **Alternative approaches** you've considered
+- **Hardware revision**: Specify your PCB version
+- **Test results**: What worked, what didn't
+- **Modifications needed**: Any changes required for your hardware
+- **Photos**: Hardware setup if helpful
 
-### Pull Requests
+## Submitting Bug Fixes
 
-We welcome code contributions! Follow these steps:
+If you have a fix for a bug:
 
 1. **Fork** the repository
-2. **Create a branch** for your feature (`git checkout -b feature/amazing-feature`)
-3. **Make your changes** following our coding standards
-4. **Test thoroughly** on actual hardware if possible
-5. **Commit your changes** with clear messages
-6. **Push to your fork** (`git push origin feature/amazing-feature`)
-7. **Open a Pull Request** with a clear description
+2. **Create a branch** for your fix (`git checkout -b fix/issue-description`)
+3. **Make minimal changes** - only fix the specific bug
+4. **Test on hardware** if possible
+5. **Document your testing** in the pull request
+6. **Commit with clear message** describing the fix
+7. **Push to your fork** (`git push origin fix/issue-description`)
+8. **Open a Pull Request** with:
+   - Description of the bug
+   - How your fix addresses it
+   - Testing performed (hardware revision, test results)
+   - Any side effects or considerations
 
 ## Development Setup
 

@@ -4,7 +4,9 @@
 [![PIC16F886](https://img.shields.io/badge/MCU-PIC16F886-orange.svg)]()
 [![MPLAB X](https://img.shields.io/badge/IDE-MPLAB%20X%20v5-green.svg)]()
 
-An alternative firmware for the **PetSafe Pet Porte 100-1023 rev.X4 PCB**, providing enhanced control and features for your cat flap. This firmware runs on the **PIC16F886** microcontroller and offers multiple operating modes, RFID tag management, and optional external control via serial interface.
+An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing enhanced control and features for your cat flap. This firmware runs on the **PIC16F886** microcontroller and offers multiple operating modes, RFID tag management, and optional external control via serial interface.
+
+> **⚠️ Important**: This is a **fork** created for better documentation. The code was originally tested by the original developer on **revision X4 hardware only**. This fork has **not been tested** on any hardware. Test thoroughly before deploying to your cat flap.
 
 ## 🐱 Features
 
@@ -52,6 +54,7 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 ## 📖 Documentation
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete guide to deploying firmware to PIC16F886 (highly recommended for first-time users!)
+- **[CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md)** - Detailed code architecture and module documentation
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributing to this project
 - **[SECURITY.md](SECURITY.md)** - Security policy and reporting vulnerabilities
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community guidelines
@@ -61,7 +64,7 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 
 ### Standard Configuration
 
-The firmware is designed for the PetSafe Pet Porte 100-1023 rev.X4 PCB with no modifications required for basic functionality.
+The firmware was originally designed for the PetSafe Pet Porte 100-1023 **rev.X4 PCB**. If you have a different hardware revision, additional modifications may be required. No modifications are needed for basic functionality on rev.X4.
 
 ### Optional: Flap Position Potentiometer
 
@@ -95,7 +98,7 @@ To disable flap position sensing, ensure `FLAP_POT` is not defined in your build
 
 The firmware supports serial communication for monitoring and control:
 
-- **Baud rate**: 9600
+- **Baud rate**: 38400 bps
 - **Data format**: 8N1 (8 data bits, no parity, 1 stop bit)
 
 ### Commands
@@ -121,15 +124,16 @@ Compiled firmware: `dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+**Note**: This project is **not in active development** or maintenance. It is a documentation-focused fork of the original project.
 
-### Ways to Contribute
+Contributions are limited to:
+- **Bug fixes**: Code corrections for identified issues
+- **Testing reports**: Results from testing on different hardware revisions
+- **Documentation improvements**: Clarifications and corrections
 
-- Report bugs and issues
-- Suggest new features
-- Submit pull requests
-- Improve documentation
-- Test on different hardware configurations
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+The repository owner does not take responsibility for maintaining this codebase long-term.
 
 ## ⚠️ Safety and Warnings
 
@@ -153,9 +157,10 @@ However, please note the disclaimer above - **use at your own risk!**
 
 ## 🙏 Acknowledgments
 
-- Original firmware developed for personal use ("Works on my cat :P")
+- Original firmware developed by original author ("Works on my cat :P")
+- This fork created for documentation and structure improvements
+- Original testing was performed by the original developer on their hardware
 - Developed using Microchip MPLAB X IDE and XC8 compiler
-- Community contributions and feedback welcome
 
 ## 📞 Support
 
@@ -165,7 +170,13 @@ However, please note the disclaimer above - **use at your own risk!**
 
 ## 🌟 Project Status
 
-This project is functional and tested on the author's cat flap. Community testing and contributions are encouraged to improve compatibility and features.
+**This is a fork** focused on documentation improvements. The firmware:
+- Was originally tested only on revision X4 hardware by the original developer
+- Has **not been tested** by the current repository maintainer
+- Is **not in active development** or maintenance
+- Is provided for documentation and educational purposes
+
+**Use at your own risk** and test thoroughly before deploying to your cat flap.
 
 ---
 
@@ -203,7 +214,7 @@ PIC16F886 Microcontroller
 - **Operating Voltage**: 5V
 - **RFID Frequency**: 134.2 kHz
 - **Crystal Oscillator**: 19.6 MHz (HS mode)
-- **Serial Baud Rate**: 9600 bps
+- **Serial Baud Rate**: 38400 bps
 
 ---
 

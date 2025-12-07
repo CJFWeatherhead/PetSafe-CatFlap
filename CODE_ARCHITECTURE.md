@@ -409,7 +409,7 @@ uint8_t readRFID(uint8_t* id, uint8_t len, uint16_t* crcComputed, uint16_t* crcR
 ```
 
 **Settings**:
-- **Baud Rate**: 38400 (hardware) / 9600 (typical use)
+- **Baud Rate**: 38400 bps (as configured in serial.h)
 - **Data Bits**: 8
 - **Parity**: None
 - **Stop Bits**: 1
@@ -1065,7 +1065,7 @@ MPLAB X generates Makefile in `nbproject/` directory.
 - Ensure 500ms activation time
 
 **Serial not responding**:
-- Verify baud rate (9600)
+- Verify baud rate (38400)
 - Check TX/RX connections (crossed?)
 - Ensure interrupts enabled
 - Check ring buffer overflow

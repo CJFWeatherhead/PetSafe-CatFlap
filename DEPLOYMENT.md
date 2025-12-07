@@ -1,6 +1,8 @@
 # PIC16F886 Deployment Guide for PetSafe Cat Flap Firmware
 
-This comprehensive guide will walk you through deploying the alternative firmware to your PetSafe Pet Porte 100-1023 rev.X4 PCB. This guide assumes no prior experience with embedded systems or PIC microcontroller programming.
+This comprehensive guide will walk you through deploying the alternative firmware to your PetSafe Pet Porte 100-1023 PCB. This guide assumes no prior experience with embedded systems or PIC microcontroller programming.
+
+> **⚠️ Important Notice**: This firmware was originally tested by the original developer on **revision X4 hardware only**. This documentation fork has **not been tested** on any hardware. Different PCB revisions may require modifications. Always test thoroughly and maintain a backup of your original firmware.
 
 ## Table of Contents
 
@@ -9,12 +11,13 @@ This comprehensive guide will walk you through deploying the alternative firmwar
 3. [Software Requirements](#software-requirements)
 4. [Understanding the PIC16F886](#understanding-the-pic16f886)
 5. [Setting Up the Development Environment](#setting-up-the-development-environment)
-6. [Building the Firmware](#building-the-firmware)
-7. [Programming the PIC16F886](#programming-the-pic16f886)
-8. [Hardware Connections](#hardware-connections)
-9. [Verification and Testing](#verification-and-testing)
-10. [Troubleshooting](#troubleshooting)
-11. [Safety and Precautions](#safety-and-precautions)
+6. [**Backing Up Original Firmware**](#backing-up-original-firmware) ⭐ **Important!**
+7. [Building the Firmware](#building-the-firmware)
+8. [Programming the PIC16F886](#programming-the-pic16f886)
+9. [Hardware Connections](#hardware-connections)
+10. [Verification and Testing](#verification-and-testing)
+11. [Troubleshooting](#troubleshooting)
+12. [Safety and Precautions](#safety-and-precautions)
 
 ---
 
@@ -105,7 +108,7 @@ The firmware controls:
 - **Terminal emulator** (for serial communication):
   - Windows: PuTTY, Tera Term, or Realterm
   - macOS/Linux: screen, minicom, or CoolTerm
-  - Baud rate: 9600 (default UART setting for PIC projects)
+  - Baud rate: 38400 bps (as defined in serial.h)
 
 ---
 
@@ -206,6 +209,105 @@ Or download as ZIP:
 1. Visit the GitHub repository
 2. Click "Code" → "Download ZIP"
 3. Extract the ZIP file to your desired location
+
+---
+
+## Backing Up Original Firmware
+
+**⚠️ CRITICAL: DO THIS BEFORE PROGRAMMING NEW FIRMWARE**
+
+Before flashing this alternative firmware, you **must** back up your original firmware. This allows you to restore factory functionality if needed.
+
+### Why Backup is Essential
+
+- **Different hardware revisions**: This firmware was tested on rev.X4 only. Your revision may differ.
+- **Restore capability**: Return to original firmware if issues occur
+- **Safety net**: Preserve working configuration
+- **No official source**: Original firmware may not be available elsewhere
+
+### How to Backup Original Firmware
+
+#### Using MPLAB X IDE
+
+1. **Connect programmer to computer and PCB** (see [Hardware Connections](#hardware-connections))
+
+2. **Power the board**:
+   - Ensure programmer can detect the PIC
+   - Board must be powered for reading
+
+3. **Open MPLAB X IDE**
+
+4. **Select your programmer**:
+   - Window → Target Memory Views → Device Memory
+   - Or: Click "Read Device Memory" icon in toolbar
+
+5. **Read the current firmware**:
+   - Go to: Run → Read Device Memory
+   - Or: Right-click on project → "Read Device Memory"
+   - Wait for read operation to complete
+
+6. **Save the firmware file**:
+   - File → Export → Hex/Unified Hex File
+   - Or: Right-click memory view → "Export Table..."
+   - Choose location: `original_firmware_backup_YYYYMMDD.hex`
+   - **Important**: Use a descriptive filename with date
+   - Save in a safe location (not in the project folder)
+
+7. **Verify the backup**:
+   - Check file size (should be several KB)
+   - Open in text editor - should see Intel HEX format (`:` at start of lines)
+   - **Keep multiple copies** (USB drive, cloud backup, etc.)
+
+#### Alternative: Using PICkit Programmer Software
+
+If using standalone PICkit programmer software:
+
+1. **Launch PICkit programmer application**
+2. **Connect to device**
+3. **Select "Read Device"**
+4. **Save as HEX file**: `original_firmware_backup_YYYYMMDD.hex`
+5. **Verify file was created successfully**
+
+### Backup Checklist
+
+Before proceeding, verify:
+
+- [ ] Backup HEX file created successfully
+- [ ] File size is reasonable (not empty)
+- [ ] Filename includes date for reference
+- [ ] File copied to safe location (not just project folder)
+- [ ] Backup file accessible from other computer (if possible)
+- [ ] You can locate this file later
+
+### Restoring Original Firmware
+
+If you need to restore the original firmware:
+
+1. **Open MPLAB X IDE**
+2. **Create new project** or use existing
+3. **Load your backup HEX file**:
+   - Right-click project → Properties
+   - Under "Loading", specify your backup HEX file
+4. **Program device**: Run → Make and Program Device
+5. **Verify operation**: Test your cat flap functionality
+
+### Configuration Bits Warning
+
+The backup includes configuration bits. When restoring:
+- Configuration bits will be restored to original values
+- This may differ from the alternative firmware configuration
+- Original functionality should be fully restored
+
+### If You Skip the Backup...
+
+**Don't skip this step!** If you encounter problems without a backup:
+
+- You may not be able to return to factory firmware
+- PetSafe may not provide firmware files
+- Your cat flap could be unusable
+- You would need another working device to extract firmware from
+
+**Take 5 minutes now to save potential hours of frustration later.**
 
 ---
 
@@ -476,7 +578,7 @@ For debugging and external control:
      - Adapter GND → PIC VSS (GND)
 
 2. **Serial settings**:
-   - Baud rate: 9600 (default for most PIC UART)
+   - Baud rate: 38400 bps
    - Data bits: 8
    - Parity: None
    - Stop bits: 1
@@ -551,7 +653,7 @@ The cat flap has several operating modes:
 If you set up serial connection:
 
 1. **Open terminal program**:
-   - Set baud rate to 9600
+   - Set baud rate to 38400
    - Connect to appropriate COM port
 
 2. **Send test commands**:
@@ -623,7 +725,7 @@ If programming fails or device doesn't work:
    - Test button continuity with multimeter
 
 6. **Serial communication not working**:
-   - Verify baud rate matches (9600)
+   - Verify baud rate matches (38400)
    - Check TX/RX connections (crossed correctly)
    - Ensure ground connection between devices
    - Test with loopback (TX→RX) on adapter

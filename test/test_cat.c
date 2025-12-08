@@ -140,7 +140,7 @@ void test_id_array_bounds(void)
     Cat testCat;
     
     // Test all 6 bytes of ID
-    for (int i = 0; i < 6; i++) {
+    for (uint8_t i = 0; i < 6; i++) {
         testCat.id[i] = (uint8_t)i;
         TEST_ASSERT_EQUAL_UINT8(i, testCat.id[i]);
     }

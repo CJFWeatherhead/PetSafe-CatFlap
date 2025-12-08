@@ -78,7 +78,7 @@ jobs:
         
     - name: Upload build artifacts
       if: success()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: firmware-${{ matrix.config }}
         path: |
@@ -125,7 +125,7 @@ jobs:
         
     - name: Upload analysis report
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: static-analysis-report
         path: cppcheck-report.txt
@@ -160,7 +160,7 @@ jobs:
         
     - name: Upload test results
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: test-results
         path: build/artifacts/test/

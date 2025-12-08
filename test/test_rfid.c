@@ -63,7 +63,7 @@ void test_rfid_id_buffer(void)
     TEST_ASSERT_EQUAL_size_t(6, sizeof(id_buffer));
     
     // Verify buffer can hold all values
-    for (int i = 0; i < 6; i++) {
+    for (size_t i = 0; i < 6; i++) {
         id_buffer[i] = (uint8_t)(0xFF - i);
         TEST_ASSERT_EQUAL_UINT8(0xFF - i, id_buffer[i]);
     }

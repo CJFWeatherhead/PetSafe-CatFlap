@@ -21,13 +21,8 @@ void initPeripherials(void)
     INTCON = 0x0;
     PIE1 = 0x0;
     PIE2 = 0x0;
-#ifdef FLAP_POT        
-    //RA0, RA1, RA2 and RA3 are analog inputs
-    ANSEL = 0xF;
-#else
     //RA0, RA2 and RA3 are analog inputs
     ANSEL = 0xD;
-#endif
     ANSELH = 0x0;
     //Only RA5 is output
     TRISA = 0xDF;
@@ -76,23 +71,6 @@ uint16_t getLightSensor(void)
     ADCON0 = 0x1;    
     return ret;
 }
-
-#ifdef FLAP_POT
-uint16_t getFlapPosition(void)
-{
-    //Start ADC on channel 1
-    ADCON0 = 0b10000101;
-    //Wait for capacitor to charge
-    __delay_us(1000);
-    ADCON0bits.GO_DONE = true;
-    while(ADCON0bits.GO_DONE){}
-    uint16_t ret = ADRESL;
-    ret += (ADRESH<<8);
-    ADCON0 = 0x1;
-    return ret;
-}
-
-#endif
 
 void beep(void)
 {

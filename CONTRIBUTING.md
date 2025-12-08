@@ -424,7 +424,6 @@ Before submitting changes:
 - [ ] Both buttons long press
 
 ## Optional Features
-- [ ] Flap position sensing (if FLAP_POT enabled)
 - [ ] Serial commands respond correctly
 - [ ] Configuration parameters save/load
 ```

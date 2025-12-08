@@ -91,15 +91,6 @@ void initPeripherials(void);
  */
 uint16_t getLightSensor(void);
 
-#ifdef FLAP_POT
-/**
- * Read the flap position
- * @return The ADC value
- */
-uint16_t getFlapPosition(void);
-
-#endif
-
 /**
  * Beep
  */

@@ -335,20 +335,7 @@ The project is pre-configured, but you should verify settings:
    - Right-click project → Properties
    - Verify "Configuration" is set to "XC8_PIC16F886"
 
-2. **Optional: Enable/Disable FLAP_POT feature**:
-   
-   The firmware supports an optional potentiometer to measure flap position.
-   
-   **To enable flap position sensing:**
-   - Open `nbproject/Makefile-XC8_PIC16F886.mk`
-   - Find the compiler flags section
-   - Ensure `-DFLAP_POT` is present in `CFLAGS`
-   
-   **To disable (default hardware):**
-   - Remove `-DFLAP_POT` from compiler flags, or
-   - The Makefile should handle this automatically if not defined
-
-3. **Verify programmer selection**:
+2. **Verify programmer selection**:
    - Right-click project → Properties
    - Under "Conf: [XC8_PIC16F886]" → Select "ICD3" (or your programmer)
    - If using a different programmer:
@@ -524,7 +511,7 @@ The firmware uses these connections on the PIC16F886:
 
 #### Port A (PORTA):
 - **RA0 (Pin 2)**: Analog input for light sensor
-- **RA1 (Pin 3)**: Optional flap position potentiometer (if FLAP_POT enabled)
+- **RA1 (Pin 3)**: Not used
 - **RA2 (Pin 4)**: RFID demodulated stream input
 - **RA5 (Pin 7)**: Red latch solenoid control
 - **RA6 (Pin 10)**: OSC2/CLKOUT - Crystal oscillator
@@ -549,23 +536,6 @@ The firmware uses these connections on the PIC16F886:
 - **RC5 (Pin 16)**: Serial interface (not used in basic setup)
 - **RC6 (Pin 17)**: TX - UART transmit (serial output)
 - **RC7 (Pin 18)**: RX - UART receive (serial input)
-
-### Optional Modification: External Potentiometer
-
-If you want to add flap position sensing:
-
-1. **Hardware addition**:
-   - Connect a 10kΩ potentiometer to RA1 (Pin 3)
-   - Connect potentiometer ends to GND and VDD
-   - Connect wiper to RA1
-
-2. **Mechanical mounting**:
-   - Mount potentiometer shaft to flap mechanism
-   - Ensure smooth rotation as flap moves
-
-3. **Software configuration**:
-   - Enable `FLAP_POT` macro in Makefile or compiler settings
-   - Rebuild firmware with FLAP_POT defined
 
 ### Serial Communication Setup (Optional)
 
@@ -682,12 +652,7 @@ If you set up serial connection:
    - Green LED should turn on (indicating lock)
    - Remove cover → LED off after delay
 
-3. **Flap position test** (if FLAP_POT enabled):
-   - Manually move flap
-   - Monitor serial output for position changes
-   - Verify position values change appropriately
-
-4. **Latch operation test**:
+3. **Latch operation test**:
    - Listen/feel for solenoid clicks
    - Verify physical latch engagement
    - Test both entrance and exit latches
@@ -880,7 +845,6 @@ Use this checklist when programming:
 - [ ] ICSP connections verified (VPP, VDD, VSS, PGD, PGC)
 - [ ] Anti-static precautions taken
 - [ ] Configuration: XC8_PIC16F886 selected
-- [ ] Optional: FLAP_POT enabled/disabled as desired
 - [ ] Ready to program!
 - [ ] Press F6 or "Make and Program Device Main Project"
 - [ ] Wait for "Programming/Verify complete" message

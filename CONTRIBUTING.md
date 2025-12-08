@@ -372,6 +372,31 @@ Fixes #(issue number)
 
 ## Testing
 
+### Automated Testing
+
+All contributions should pass automated tests:
+
+1. **Unit Tests**: Run `ceedling test:all`
+   ```bash
+   # Install Ceedling
+   sudo gem install ceedling
+   
+   # Run tests
+   ceedling test:all
+   ```
+
+2. **Static Analysis**: Code is automatically checked with cppcheck
+   ```bash
+   cppcheck --enable=all --std=c99 *.c
+   ```
+
+3. **CI/CD Pipeline**: All pull requests trigger automated:
+   - Build with XC8 compiler
+   - Static code analysis
+   - Unit test execution
+
+See **[TESTING.md](TESTING.md)** for complete testing guide.
+
 ### Required Testing
 
 Before submitting changes:
@@ -382,11 +407,17 @@ Before submitting changes:
    Verify: BUILD SUCCESSFUL
    ```
 
-2. **Code size check**:
+2. **Unit tests**: Run and verify all tests pass
+   ```bash
+   ceedling test:all
+   # Ensure: ALL TESTS PASSED
+   ```
+
+3. **Code size check**:
    - Ensure program memory usage < 90% (leave room for future features)
    - Check RAM usage < 80%
 
-3. **Functional testing** (if hardware available):
+4. **Functional testing** (if hardware available):
    - [ ] All modes work correctly
    - [ ] RFID reading functions
    - [ ] LEDs indicate proper status

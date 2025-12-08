@@ -1,0 +1,95 @@
+---
+# Ceedling Project Configuration for PetSafe Cat Flap Firmware Testing
+# This file configures the test framework for embedded C code
+
+:project:
+  :use_exceptions: FALSE
+  :use_test_preprocessor: TRUE
+  :use_auxiliary_dependencies: TRUE
+  :build_root: build
+  :test_file_prefix: test_
+  :which_ceedling: gem
+  :default_tasks:
+    - test:all
+
+:environment: []
+
+:extension:
+  :executable: .out
+
+:paths:
+  :test:
+    - test/**
+  :source:
+    - ./*.c
+  :include:
+    - ./*.h
+  :support:
+    - test/support
+
+:defines:
+  :common: &common_defines
+    - _XTAL_FREQ=19660800UL
+    - __XC8
+  :test:
+    - *common_defines
+    - TEST
+  :test_preprocess:
+    - *common_defines
+    - TEST
+
+:cmock:
+  :mock_prefix: mock_
+  :when_no_prototypes: :warn
+  :enforce_strict_ordering: TRUE
+  :plugins:
+    - :ignore
+    - :callback
+  :treat_as:
+    uint8:    HEX8
+    uint16:   HEX16
+    uint32:   HEX32
+    int8:     INT8
+    bool:     UINT8
+
+:flags:
+  :test:
+    :compile:
+      :*:
+        - -std=c99
+        - -Wall
+        - -Wextra
+        - -Werror
+        - -pedantic
+        - -Wno-unused-parameter
+        - -Wno-unused-function
+
+:tools:
+  :test_compiler:
+    :executable: gcc
+    :arguments:
+      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
+      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
+      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
+      - -c ${1}
+      - -o ${2}
+  :test_linker:
+    :executable: gcc
+    :arguments:
+      - ${1}
+      - -o ${2}
+
+:plugins:
+  :load_paths:
+    - "#{Ceedling.load_path}"
+  :enabled:
+    - stdout_pretty_tests_report
+    - module_generator
+    - gcov
+
+:gcov:
+  :reports:
+    - HtmlDetailed
+  :gcovr:
+    :html_medium_threshold: 75
+    :html_high_threshold: 90

@@ -3,6 +3,7 @@
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](LICENSE)
 [![PIC16F886](https://img.shields.io/badge/MCU-PIC16F886-orange.svg)]()
 [![MPLAB X](https://img.shields.io/badge/IDE-MPLAB%20X%20v5-green.svg)]()
+[![CI Build](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml/badge.svg)](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml)
 
 An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing enhanced control and features for your cat flap. This firmware runs on the **PIC16F886** microcontroller and offers multiple operating modes, RFID tag management, and optional external control via serial interface.
 
@@ -55,6 +56,7 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete guide to deploying firmware to PIC16F886 (highly recommended for first-time users!)
 - **[CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md)** - Detailed code architecture and module documentation
+- **[TESTING.md](TESTING.md)** - Testing guide including unit tests, CI/CD, and static analysis
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributing to this project
 - **[SECURITY.md](SECURITY.md)** - Security policy and reporting vulnerabilities
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community guidelines
@@ -121,6 +123,49 @@ Example status response: `AM0L512P512S3\n`
 ### Build Artifacts
 
 Compiled firmware: `dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex`
+
+## 🧪 Testing and Quality Assurance
+
+### Automated Testing
+
+The project includes comprehensive testing infrastructure:
+
+- **Unit Tests**: Test individual modules (cat, rfid, serial)
+- **Static Analysis**: Automated code quality checks with cppcheck
+- **CI/CD Pipeline**: Automated build and test on every commit
+- **Code Coverage**: Track test coverage with GCov
+
+### Running Tests Locally
+
+```bash
+# Install Ceedling test framework
+sudo gem install ceedling
+
+# Run all unit tests
+ceedling test:all
+
+# Run specific module tests
+ceedling test:cat
+ceedling test:rfid
+ceedling test:serial
+
+# Generate code coverage report
+ceedling gcov:all
+```
+
+### Continuous Integration
+
+Every push and pull request automatically:
+1. Compiles with XC8 compiler for PIC16F886
+2. Runs static code analysis
+3. Executes unit tests
+4. Generates test reports
+
+View build status: [![CI Build](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml/badge.svg)](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml)
+
+### Testing Documentation
+
+For detailed testing instructions, see **[TESTING.md](TESTING.md)**.
 
 ## 🤝 Contributing
 

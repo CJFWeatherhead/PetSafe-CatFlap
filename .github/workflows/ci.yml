@@ -14,7 +14,7 @@ permissions:
 jobs:
   build:
     name: Build with XC8 Compiler
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     
     permissions:
       contents: read
@@ -31,18 +31,48 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget unzip make
+        sudo apt-get install -y wget unzip make libc6:i386 libstdc++6:i386 libncurses5:i386
         
     - name: Download and install XC8 compiler
       run: |
         # Download XC8 compiler (free version)
         # Using XC8 v2.46 which supports PIC16F886
-        wget -q https://ww1.microchip.com/downloads/en/DeviceDoc/xc8-v2.46-full-install-linux-x64-installer.run -O xc8-installer.run
+        echo "Downloading XC8 v2.46 installer..."
+        wget --retry-connrefused --tries=5 --timeout=30 \
+          https://ww1.microchip.com/downloads/en/DeviceDoc/xc8-v2.46-full-install-linux-x64-installer.run \
+          -O xc8-installer.run
+        
+        # Verify download succeeded
+        if [ ! -f xc8-installer.run ] || [ ! -s xc8-installer.run ]; then
+          echo "ERROR: Download failed or file is empty"
+          exit 1
+        fi
+        
+        echo "Download complete. File size: $(du -h xc8-installer.run | cut -f1)"
+        
+        # Make installer executable
         chmod +x xc8-installer.run
+        
         # Install in unattended mode
-        sudo ./xc8-installer.run --mode unattended --netservername localhost
+        echo "Installing XC8 compiler..."
+        sudo ./xc8-installer.run --mode unattended --netservername localhost 2>&1 | tee install.log
+        INSTALL_EXIT_CODE=${PIPESTATUS[0]}
+        
+        echo "Installer exit code: $INSTALL_EXIT_CODE"
+        
         # Verify installation
-        /opt/microchip/xc8/v2.46/bin/xc8-cc --version || echo "XC8 installation pending..."
+        if [ -f /opt/microchip/xc8/v2.46/bin/xc8-cc ]; then
+          echo "XC8 installed successfully!"
+          /opt/microchip/xc8/v2.46/bin/xc8-cc --version
+          exit 0
+        else
+          echo "ERROR: Installation verification failed"
+          echo "Installation log:"
+          cat install.log || true
+          echo "Checking installation directory:"
+          ls -la /opt/microchip/xc8/ || echo "Directory does not exist"
+          exit 1
+        fi
         
     - name: Set up XC8 environment
       run: |

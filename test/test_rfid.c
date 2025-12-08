@@ -107,15 +107,16 @@ void test_rfid_pwm_control(void)
  */
 void test_error_code_priority(void)
 {
-    // Error codes should be checked in order of severity
-    // NO_CARRIER (1) - most fundamental error
-    // NO_HEADER (2) - next level
+    // Error codes are defined in ascending order reflecting priority
+    // NO_CARRIER (1) - most fundamental error (detected first)
+    // NO_HEADER (2) - next level error
     // BAD_START (3) - protocol error
     // BAD_CRC (4) - data integrity error
     
-    TEST_ASSERT_LESS_THAN(NO_HEADER, NO_CARRIER);
-    TEST_ASSERT_LESS_THAN(BAD_START, NO_HEADER);
-    TEST_ASSERT_LESS_THAN(BAD_CRC, BAD_START);
+    // Verify each code is greater than the previous (in correct sequence)
+    TEST_ASSERT_GREATER_THAN(NO_CARRIER, NO_HEADER);  // 2 > 1
+    TEST_ASSERT_GREATER_THAN(NO_HEADER, BAD_START);   // 3 > 2
+    TEST_ASSERT_GREATER_THAN(BAD_START, BAD_CRC);     // 4 > 3
 }
 
 // Note: The actual readRFID function requires hardware interaction

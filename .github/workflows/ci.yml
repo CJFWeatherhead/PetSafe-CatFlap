@@ -7,10 +7,18 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+# Set default permissions to read-only for security
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build with XC8 Compiler
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      actions: read
     
     strategy:
       matrix:
@@ -82,6 +90,9 @@ jobs:
     name: Static Code Analysis
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: read
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -123,6 +134,9 @@ jobs:
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code

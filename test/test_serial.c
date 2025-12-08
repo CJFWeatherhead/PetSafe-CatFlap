@@ -72,12 +72,12 @@ void test_ring_buffer_data(void)
     struct RingBuffer testBuffer;
     
     // Fill buffer with test data
-    for (uint8_t i = 0; i < SER_BUFFER; i++) {
+    for (size_t i = 0; i < SER_BUFFER; i++) {
         testBuffer.buffer[i] = (uint8_t)('A' + i);
     }
     
     // Verify data
-    for (uint8_t i = 0; i < SER_BUFFER; i++) {
+    for (size_t i = 0; i < SER_BUFFER; i++) {
         TEST_ASSERT_EQUAL_UINT8('A' + i, testBuffer.buffer[i]);
     }
 }

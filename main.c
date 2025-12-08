@@ -22,14 +22,7 @@
  */
 #define LIGHT_READ_PERIOD 5000
 
-#ifdef FLAP_POT
-/**
- * Number of milliseconds
- * between flap potentiometer read
- */
-#define FLAP_POT_READ_PERIOD 200
 
-#endif
 
 /**
  * Operating mode of flap
@@ -63,19 +56,7 @@ static bool inLocked = false;
 //Light sensor value
 static uint16_t light = 0;
 //Light sensor threshold
-static uint16_t lightThd = 0;    
-#ifdef FLAP_POT
-//Flap position
-static uint16_t flapPos = 0;
-//Flap position tolerance
-static uint16_t flapPosTol = 30;
-//Flap position IDLE
-static uint16_t flapPosIdle = 512;
-//Flap open inner 
-static bool flapInner = false;
-//Flap open outer
-static bool flapOuter = false;
-#endif
+static uint16_t lightThd = 0;
 
 /**
  * Switch flap operating mode
@@ -212,15 +193,6 @@ uint16_t buildStatusBits(){
     uint16_t ret = 0;
     if(inLocked){ ret = 0x1; }
     if(outLocked){ ret |= 0x2; }
-#ifdef FLAP_POT
-    if(flapInner){
-        //Flap is open inner direction
-        ret |= 0x4;
-    }else if(flapOuter){
-        //Flap is open closed direction
-        ret |= 0x8;
-    }
-#endif
     return ret;
 }
 
@@ -231,11 +203,7 @@ void printStatus(){
     putch('L');
     putShort(light);
     putch('P');
-#ifdef FLAP_POT
-    putShort(flapPos);
-#else
     putShort(0);
-#endif            
     putch('S');
     putShort(buildStatusBits());
     putch('\n');
@@ -276,12 +244,6 @@ void handleSerial(){
                                     switch(index){
                                         case LIGHT_CFG:
                                             lightThd = value;
-                                            break;
-                                        case FLAP_POS_IDLE:
-                                            flapPosIdle = value;
-                                            break;
-                                        case FLAP_POS_MARGIN:
-                                            flapPosTol = value;
                                             break;
                                         default:
                                             ;
@@ -351,11 +313,6 @@ void main(void)
     }
     switchMode(MODE_NORMAL);
     ms_t lastLightRead = millis();
-#ifdef FLAP_POT
-    ms_t lastFlapRead = lastLightRead;
-    flapPosIdle = getConfiguration(FLAP_POS_IDLE);
-    flapPosTol = getConfiguration(FLAP_POS_MARGIN);
-#endif
     while(1)
     {   
         ms_t ms = millis();
@@ -363,35 +320,6 @@ void main(void)
             light = getLightSensor();           
             lastLightRead = ms;
         }
-#ifdef FLAP_POT
-        if((ms-lastFlapRead)>FLAP_POT_READ_PERIOD){
-            flapPos = getFlapPosition();
-            bool doUpdate = false;
-            if(flapPos > (flapPosIdle+flapPosTol)){
-                //Flap is open inner direction (open)
-                if(!flapInner){
-                    flapInner = true;
-                    flapOuter = false;
-                    doUpdate = true;
-                }
-            }else if(flapPos < (flapPosIdle-flapPosTol)){
-                //Flap is open outer direction
-                if(!flapOuter){
-                    flapOuter = true;
-                    flapInner = false;
-                    doUpdate = true;
-                }
-            }else{
-                doUpdate = flapInner | flapOuter;
-                flapOuter = false;
-                flapInner = false;
-            }
-            if(doUpdate){
-                printStatus();
-            }
-            lastFlapRead = ms;
-        }
-#endif
         bool doOpen = false;
         switch(opMode){
             case MODE_NORMAL:             

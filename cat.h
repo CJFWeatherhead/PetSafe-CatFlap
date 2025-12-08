@@ -43,12 +43,7 @@
 //Offset of configuration
 //Light threshold value
 #define LIGHT_CFG 0
-#ifdef FLAP_POT
-    //Flap middle position
-    #define FLAP_POS_IDLE 1
-    //Flap middle position margin
-    #define FLAP_POS_MARGIN 2
-#endif
+
 /**
  Define a cat in the 
  **/

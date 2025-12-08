@@ -19,7 +19,6 @@ An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing en
   - Learn Mode: Add new RFID tags
   - Clear Mode: Remove all stored tags
 - **Light Sensor Integration**: Automatic operation based on ambient light
-- **Optional Flap Position Sensing**: Track flap movement with external potentiometer
 - **Serial Communication**: External control and monitoring capability
 - **LED Indicators**: Visual feedback for different modes
 - **Configurable Settings**: Adjustable thresholds and parameters
@@ -65,16 +64,6 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 ### Standard Configuration
 
 The firmware was originally designed for the PetSafe Pet Porte 100-1023 **rev.X4 PCB**. If you have a different hardware revision, additional modifications may be required. No modifications are needed for basic functionality on rev.X4.
-
-### Optional: Flap Position Potentiometer
-
-For enhanced flap position sensing:
-
-1. Connect a 10kΩ potentiometer to RA1 (Pin 3)
-2. Enable the `FLAP_POT` macro when building
-3. Configure flap position thresholds via serial interface
-
-To disable flap position sensing, ensure `FLAP_POT` is not defined in your build configuration.
 
 ## 🎮 Operating Modes
 
@@ -194,8 +183,7 @@ PIC16F886 Microcontroller
 │   ├── Green (entrance control)
 │   └── Red (exit control)
 ├── Sensors
-│   ├── Light sensor (night mode)
-│   └── Flap position (optional)
+│   └── Light sensor (night mode)
 ├── User Interface
 │   ├── Red LED
 │   ├── Green LED

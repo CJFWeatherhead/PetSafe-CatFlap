@@ -168,8 +168,7 @@ static uint16_t lightThd = 0;           // Light threshold
 - Builds bit pattern representing device status
 - Bit 0: Entrance locked
 - Bit 1: Exit locked
-- Bit 2: Flap open inward (if FLAP_POT enabled)
-- Bit 3: Flap open outward (if FLAP_POT enabled)
+- Bits 2-3: Reserved (formerly used for flap position)
 
 ##### Main Loop Flow
 
@@ -204,7 +203,6 @@ void main(void) {
 **Key Timing Values**:
 - `OPEN_TIME`: 5000ms - Duration to keep door open after RFID match
 - `LIGHT_READ_PERIOD`: 5000ms - Interval between light sensor reads
-- `FLAP_POT_READ_PERIOD`: 200ms - Interval for flap position reads
 
 ---
 
@@ -219,9 +217,7 @@ Address Range    | Content
 ─────────────────┼────────────────────────────
 0x00 - 0x7F      | Configuration parameters (128 bytes)
   0x00-0x01      |   Light threshold (uint16_t)
-  0x02-0x03      |   Flap idle position (uint16_t, if FLAP_POT)
-  0x04-0x05      |   Flap position margin (uint16_t, if FLAP_POT)
-  0x06-0x7F      |   Reserved for future config
+  0x02-0x7F      |   Reserved for future config
 ─────────────────┼────────────────────────────
 0x80 - 0xFF      | Cat RFID storage (128 bytes)
                  |   16 slots × 8 bytes each
@@ -553,11 +549,7 @@ putch(LIGHT_CFG);
 
 **Analog Configuration**:
 ```c
-#ifdef FLAP_POT        
-    ANSEL = 0xF;   // RA0, RA1, RA2, RA3 analog
-#else
-    ANSEL = 0xD;   // RA0, RA2, RA3 analog (skip RA1)
-#endif
+ANSEL = 0xD;   // RA0, RA2, RA3 analog
 ```
 
 **`uint16_t getLightSensor(void)`**
@@ -570,11 +562,6 @@ putch(LIGHT_CFG);
   3. Start conversion
   4. Wait for completion
   5. Return 10-bit result
-
-**`uint16_t getFlapPosition(void)`** (if FLAP_POT enabled)
-- Reads flap potentiometer on RA1 (AN1)
-- Returns: 10-bit ADC value (0-1023)
-- Similar process to light sensor
 
 **`void beep(void)`**
 - Generates audible beep
@@ -1004,10 +991,9 @@ MPLAB X generates Makefile in `nbproject/` directory.
 
 ### Build Macros
 
-**`FLAP_POT`**: Enable flap position sensing
-- Defined in project properties or Makefile
-- Affects code in multiple files
-- Changes:
+**`_XTAL_FREQ`**: 19600000 (19.6 MHz)
+- Defines system clock frequency
+- Used by delay macros
   - Adds RA1 as analog input
   - Includes flap position functions
   - Adds status bits for flap state

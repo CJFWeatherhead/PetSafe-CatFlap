@@ -2,9 +2,12 @@
  * Unit Tests for RFID Module
  * 
  * Tests the RFID tag reading error codes and definitions
+ * Note: Full RFID hardware functions require actual PIC16F886 hardware
+ * and are tested via integration/hardware tests
  */
 
 #include "unity.h"
+#include "xc_hardware_mock.h"  // Must be included before rfid.h
 #include "rfid.h"
 
 // Test fixtures

@@ -3,7 +3,7 @@
  * Provides runtime variables for testing hardware interactions
  */
 
-#include "xc_mock.h"
+#include "xc_hardware_mock.h"
 #include <stdint.h>
 
 // Port registers

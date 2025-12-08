@@ -4,8 +4,17 @@
  * to allow testing on non-embedded platforms
  */
 
-#ifndef XC_MOCK_H
-#define XC_MOCK_H
+#ifndef XC_HARDWARE_MOCK_H
+#define XC_HARDWARE_MOCK_H
+
+// Prevent the real xc.h from being included
+#ifndef xc_h
+#define xc_h
+#endif
+
+#ifndef XC_H
+#define XC_H
+#endif
 
 #include <stdint.h>
 #include <stdbool.h>

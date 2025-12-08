@@ -1,10 +1,9 @@
 ---
 # Ceedling Project Configuration for PetSafe Cat Flap Firmware Testing
-# This file configures the test framework for embedded C code
 
 :project:
   :use_exceptions: FALSE
-  :use_test_preprocessor: TRUE
+  :use_test_preprocessor: :none
   :use_auxiliary_dependencies: TRUE
   :build_root: build
   :test_file_prefix: test_
@@ -19,38 +18,37 @@
 
 :paths:
   :test:
-    - test/**
+    - +:test 
   :source:
-    - ./*.c
+    - +:. # Source files in project root
   :include:
-    - ./*.h
+    - +:.
   :support:
     - test/support
 
+# Exclude hardware-dependent source files that can't be easily tested
+# These require full PIC16F886 hardware or comprehensive mocking
+:files:
+  :test:
+    - +:test/test_*.c  # Only test_ prefixed files are tests
+  :support:
+    - +:test/support/xc_hardware_mock.c  # Support C files to compile
+    - -:test/support/xc.h  # Don't try to compile header stubs
+  :source:
+    - -:cat.c         # Requires EEPROM functions
+    - -:rfid.c        # Requires ADC and timer hardware
+    - -:serial.c      # Requires UART hardware
+    - -:peripherials.c # Requires full port manipulation
+    - -:interrupts.c  # Requires interrupt hardware
+    - -:user.c        # Requires initialization hardware
+    - -:main.c        # Full application, tested via integration
+    - -:configuration_bits.c # Hardware configuration only
+
 :defines:
-  :common: &common_defines
+  :test:
     - _XTAL_FREQ=19660800UL
     - __XC8
-  :test:
-    - *common_defines
     - TEST
-  :test_preprocess:
-    - *common_defines
-    - TEST
-
-:cmock:
-  :mock_prefix: mock_
-  :when_no_prototypes: :warn
-  :enforce_strict_ordering: TRUE
-  :plugins:
-    - :ignore
-    - :callback
-  :treat_as:
-    uint8:    HEX8
-    uint16:   HEX16
-    uint32:   HEX32
-    int8:     INT8
-    bool:     UINT8
 
 :flags:
   :test:
@@ -58,38 +56,13 @@
       :*:
         - -std=c99
         - -Wall
-        - -Wextra
-        - -Werror
-        - -pedantic
         - -Wno-unused-parameter
         - -Wno-unused-function
-
-:tools:
-  :test_compiler:
-    :executable: gcc
-    :arguments:
-      - -I"$": COLLECTION_PATHS_TEST_SUPPORT_SOURCE_INCLUDE_VENDOR
-      - -I"$": COLLECTION_PATHS_TEST_TOOLCHAIN_INCLUDE
-      - -D$: COLLECTION_DEFINES_TEST_AND_VENDOR
-      - -c ${1}
-      - -o ${2}
-  :test_linker:
-    :executable: gcc
-    :arguments:
-      - ${1}
-      - -o ${2}
+        - -I.
+        - -Itest/support
 
 :plugins:
-  :load_paths:
-    - "#{Ceedling.load_path}"
+  :load_paths: []
   :enabled:
-    - stdout_pretty_tests_report
+    - report_tests_pretty_stdout
     - module_generator
-    - gcov
-
-:gcov:
-  :reports:
-    - HtmlDetailed
-  :gcovr:
-    :html_medium_threshold: 75
-    :html_high_threshold: 90

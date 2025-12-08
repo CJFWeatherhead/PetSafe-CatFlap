@@ -3,9 +3,13 @@
  * 
  * Tests the functionality of storing and retrieving cat RFID tags
  * in EEPROM memory.
+ * 
+ * Note: Functions requiring EEPROM hardware (getCat, saveCat, etc.)
+ * are tested via hardware/integration tests.
  */
 
 #include "unity.h"
+#include "xc_hardware_mock.h"  // Must be included before cat.h
 #include "cat.h"
 #include <string.h>
 

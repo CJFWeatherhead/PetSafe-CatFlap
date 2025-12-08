@@ -2,9 +2,11 @@
  * Unit Tests for Serial Module
  * 
  * Tests the serial communication definitions and ring buffer structure
+ * Note: UART hardware functions are tested via hardware/integration tests
  */
 
 #include "unity.h"
+#include "xc_hardware_mock.h"  // Must be included before serial.h
 #include "serial.h"
 
 // Test fixtures

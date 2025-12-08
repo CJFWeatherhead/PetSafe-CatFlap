@@ -31,6 +31,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
+        # Enable 32-bit architecture support (required for XC8)
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
         sudo apt-get install -y wget unzip make libc6:i386 libstdc++6:i386 libncurses5:i386
         
     - name: Download and install XC8 compiler

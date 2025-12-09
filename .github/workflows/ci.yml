@@ -19,10 +19,6 @@ jobs:
     permissions:
       contents: read
       actions: read
-    
-    strategy:
-      matrix:
-        config: [XC8_PIC16F886]
         
     steps:
     - name: Checkout code
@@ -62,7 +58,7 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: firmware-${{ matrix.config }}
+        name: firmware-pic16f886
         path: |
           dist/XC8_PIC16F886/production/*.hex
           dist/XC8_PIC16F886/production/*.elf

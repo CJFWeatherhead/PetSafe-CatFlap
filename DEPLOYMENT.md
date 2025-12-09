@@ -85,7 +85,41 @@ The firmware controls:
 
 ## Software Requirements
 
-### Required Software
+### Option 1: Docker (Recommended - Easiest and Most Modern)
+
+**Docker** provides a containerized build environment, eliminating the need to install MPLAB X or XC8 directly on your computer.
+
+1. **Docker Desktop** (or Docker Engine on Linux)
+   - Free download from [Docker's website](https://www.docker.com/products/docker-desktop)
+   - Available for Windows, macOS, and Linux
+   - Size: ~500MB-1GB depending on platform
+   - **Advantages:**
+     - No need to install MPLAB X or XC8 manually
+     - Works consistently across all operating systems
+     - Isolated environment prevents conflicts
+     - Same build environment as CI/CD pipeline
+     - Easy updates and version management
+
+2. **MPLAB X IPE** (Integrated Programming Environment) - for flashing only
+   - Free download from [Microchip's website](https://www.microchip.com/mplab/mplab-integrated-programming-environment)
+   - Used only for programming the .hex file to the PIC
+   - Much smaller than full MPLAB X IDE
+   - Available for Windows, macOS, and Linux
+
+**Building with Docker:**
+```bash
+# Build the Docker image (one time)
+docker build -t xc8-pic-builder:latest .
+
+# Compile the firmware
+docker run --rm -v $(pwd):/project -w /project xc8-pic-builder:latest ./build.sh
+
+# Output: dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex
+```
+
+### Option 2: MPLAB X IDE (Traditional Method)
+
+If you prefer a traditional IDE with debugging capabilities:
 
 1. **MPLAB X IDE** (Integrated Development Environment)
    - Version 5.x or later (project developed with v5.x)
@@ -94,7 +128,7 @@ The firmware controls:
    - Size: ~500MB-1GB depending on platform
 
 2. **XC8 Compiler**
-   - Version 2.00 or later (as specified in project configuration)
+   - Version 2.00 or later (v2.46 recommended, as used in CI)
    - Free download from [Microchip's website](https://www.microchip.com/mplab/compilers)
    - Required to compile C code for PIC16 series microcontrollers
    - Size: ~200-400MB
@@ -313,7 +347,53 @@ The backup includes configuration bits. When restoring:
 
 ## Building the Firmware
 
-### Opening the Project in MPLAB X
+You have two options for building the firmware: **Docker** (recommended) or **MPLAB X IDE**.
+
+### Option 1: Building with Docker (Recommended)
+
+Docker provides the easiest and most reliable build method:
+
+1. **Prerequisites**:
+   - Docker Desktop installed (see Software Requirements section)
+   - Clone the repository to your computer
+
+2. **Build the Docker image** (one time only):
+   ```bash
+   cd PetSafe-CatFlap
+   docker build -t xc8-pic-builder:latest .
+   ```
+   
+   This downloads Ubuntu 22.04, installs XC8 compiler v2.46, and creates a build environment.
+   Takes about 5-10 minutes on first run.
+
+3. **Compile the firmware**:
+   ```bash
+   docker run --rm -v $(pwd):/project -w /project xc8-pic-builder:latest ./build.sh
+   ```
+   
+   On Windows (PowerShell):
+   ```powershell
+   docker run --rm -v ${PWD}:/project -w /project xc8-pic-builder:latest /bin/bash -c "./build.sh"
+   ```
+
+4. **Locate the compiled firmware**:
+   ```
+   dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex
+   ```
+   
+   This `.hex` file is ready for programming to your PIC16F886.
+
+**Advantages of Docker approach:**
+- No manual XC8 installation needed
+- Works consistently on Windows, macOS, and Linux
+- Same build environment as CI/CD pipeline
+- Isolated from your system - no conflicts
+
+### Option 2: Building with MPLAB X IDE
+
+If you prefer a traditional IDE:
+
+#### Opening the Project in MPLAB X
 
 1. **Launch MPLAB X IDE**
 
@@ -327,7 +407,7 @@ The backup includes configuration bits. When restoring:
    - Right-click the project name in the Projects window
    - Select "Set as Main Project"
 
-### Configuring Build Options
+#### Configuring Build Options
 
 The project is pre-configured, but you should verify settings:
 
@@ -342,7 +422,7 @@ The project is pre-configured, but you should verify settings:
      - Click "Hardware Tool" category
      - Select your programmer from the dropdown (PICkit 3, PICkit 4, Snap, etc.)
 
-### Building the Firmware
+#### Building the Firmware
 
 1. **Clean the project** (recommended for first build):
    - Right-click project → Clean
@@ -369,7 +449,7 @@ The project is pre-configured, but you should verify settings:
    ```
    - This `.hex` file contains the compiled firmware ready for programming
 
-### Understanding Build Errors
+#### Understanding Build Errors
 
 If the build fails, common issues include:
 

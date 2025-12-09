@@ -28,8 +28,14 @@ An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing en
 
 ### Prerequisites
 
+**Option 1: Docker (Recommended)**
+- Docker Desktop (or Docker Engine on Linux)
+- PIC programmer (PICkit 3, PICkit 4, ICD 3, or Snap)
+- PetSafe Pet Porte 100-1023 rev.X4 PCB with PIC16F886
+
+**Option 2: MPLAB X IDE**
 - MPLAB X IDE v5.x or later
-- XC8 Compiler v2.00 or later
+- XC8 Compiler v2.00 or later (v2.46 recommended)
 - PIC programmer (PICkit 3, PICkit 4, ICD 3, or Snap)
 - PetSafe Pet Porte 100-1023 rev.X4 PCB with PIC16F886
 
@@ -41,13 +47,24 @@ An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing en
    cd PetSafe-CatFlap
    ```
 
-2. **Open project in MPLAB X IDE**
+2. **Build the firmware** (choose one):
+   
+   Using Docker:
+   ```bash
+   docker build -t xc8-pic-builder:latest .
+   docker run --rm -v $(pwd):/project -w /project xc8-pic-builder:latest ./build.sh
+   ```
+   
+   Using MPLAB X IDE:
+   - Open project in MPLAB X
+   - Build → Build Main Project (F11)
 
-3. **Build the project** (F11 or Build button)
+3. **Program your PIC16F886** 
+   - Connect PIC programmer
+   - Use MPLAB X IPE or IDE to flash the .hex file
+   - File location: `dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex`
 
-4. **Program your PIC16F886** (F6 or Make and Program Device)
-
-5. **Install and test** on your cat flap
+4. **Install and test** on your cat flap
 
 For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a comprehensive guide for beginners.
 
@@ -102,7 +119,30 @@ Example status response: `AM0L512P512S3\n`
 
 ## 🏗️ Building the Project
 
+### Using Docker (Recommended for CI/CD and Cross-Platform)
+
+The easiest way to build the firmware is using Docker, which provides a consistent build environment across all platforms:
+
+```bash
+# Build the Docker image (first time only)
+docker build -t xc8-pic-builder:latest .
+
+# Build the firmware
+docker run --rm -v $(pwd):/project -w /project xc8-pic-builder:latest ./build.sh
+
+# The compiled .hex file will be in:
+# dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex
+```
+
+**Why Docker?**
+- Works on Linux, macOS, and Windows
+- No manual XC8 compiler installation needed
+- Consistent build environment for CI/CD
+- Isolated from host system
+
 ### Using MPLAB X IDE
+
+For interactive development and debugging:
 
 1. Open project in MPLAB X
 2. Select configuration: **XC8_PIC16F886**
@@ -112,6 +152,13 @@ Example status response: `AM0L512P512S3\n`
 ### Build Artifacts
 
 Compiled firmware: `dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex`
+
+This `.hex` file can be programmed to the PIC16F886 using:
+- PICkit 3
+- PICkit 4
+- ICD 3
+- MPLAB Snap
+- Or any compatible PIC programmer
 
 ## 🧪 Testing and Quality Assurance
 
@@ -144,11 +191,21 @@ ceedling gcov:all
 
 ### Continuous Integration
 
+The CI/CD pipeline uses a Docker-based approach for maximum compatibility and portability:
+
 Every push and pull request automatically:
-1. Compiles with XC8 compiler for PIC16F886
-2. Runs static code analysis
-3. Executes unit tests
-4. Generates test reports
+1. Builds a Docker container with XC8 compiler v2.46
+2. Compiles firmware for PIC16F886 using Docker
+3. Runs static code analysis with cppcheck
+4. Executes unit tests with Ceedling
+5. Uploads build artifacts (.hex files)
+
+**Benefits of Docker-based CI:**
+- Works on any GitHub runner (ubuntu-latest, not tied to specific versions)
+- Consistent build environment across all platforms
+- No manual compiler installation in CI
+- Faster builds with Docker layer caching
+- Reproducible builds
 
 View build status: [![CI Build](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml/badge.svg)](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml)
 

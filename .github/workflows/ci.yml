@@ -13,8 +13,8 @@ permissions:
 
 jobs:
   build:
-    name: Build with XC8 Compiler
-    runs-on: ubuntu-20.04
+    name: Build with XC8 Compiler (Docker)
+    runs-on: ubuntu-latest
     
     permissions:
       contents: read
@@ -28,82 +28,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Install dependencies
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build XC8 Docker image
       run: |
-        sudo apt-get update
-        # Enable 32-bit architecture support (required for XC8)
-        sudo dpkg --add-architecture i386
-        sudo apt-get update
-        sudo apt-get install -y wget unzip make libc6:i386 libstdc++6:i386 libncurses5:i386
+        echo "Building Docker image with XC8 compiler..."
+        docker build -t xc8-pic-builder:latest .
         
-    - name: Download and install XC8 compiler
+    - name: Build firmware using Docker
       run: |
-        # Download XC8 compiler (free version)
-        # Using XC8 v2.46 which supports PIC16F886
-        echo "Downloading XC8 v2.46 installer..."
-        wget --retry-connrefused --tries=5 --timeout=30 \
-          https://ww1.microchip.com/downloads/en/DeviceDoc/xc8-v2.46-full-install-linux-x64-installer.run \
-          -O xc8-installer.run
+        echo "Building PIC16F886 firmware in Docker container..."
+        docker run --rm \
+          -v ${{ github.workspace }}:/project \
+          -w /project \
+          xc8-pic-builder:latest \
+          /bin/bash -c "./build.sh"
         
-        # Verify download succeeded
-        if [ ! -f xc8-installer.run ] || [ ! -s xc8-installer.run ]; then
-          echo "ERROR: Download failed or file is empty"
-          exit 1
-        fi
-        
-        echo "Download complete. File size: $(du -h xc8-installer.run | cut -f1)"
-        
-        # Make installer executable
-        chmod +x xc8-installer.run
-        
-        # Install in unattended mode
-        echo "Installing XC8 compiler..."
-        sudo ./xc8-installer.run --mode unattended --netservername localhost 2>&1 | tee install.log
-        
-        # Verify installation (checking for the binary is more reliable than exit codes)
-        if [ -f /opt/microchip/xc8/v2.46/bin/xc8-cc ]; then
-          echo "XC8 installed successfully!"
-          /opt/microchip/xc8/v2.46/bin/xc8-cc --version
+    - name: Verify build output
+      run: |
+        echo "Checking for generated .hex file..."
+        if [ -f dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex ]; then
+          echo "✓ Build successful!"
+          echo "Firmware file: dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex"
+          echo "File size: $(wc -c < dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex) bytes"
+          ls -lh dist/XC8_PIC16F886/production/
         else
-          echo "ERROR: Installation verification failed"
-          echo "Installation log:"
-          cat install.log || true
-          echo "Checking installation directory:"
-          ls -la /opt/microchip/xc8/ || echo "Directory does not exist"
+          echo "✗ ERROR: .hex file not found"
           exit 1
         fi
-        
-    - name: Set up XC8 environment
-      run: |
-        echo "/opt/microchip/xc8/v2.46/bin" >> $GITHUB_PATH
-        export PATH="/opt/microchip/xc8/v2.46/bin:$PATH"
-        
-    - name: Verify XC8 installation
-      run: |
-        which xc8-cc || echo "xc8-cc not in PATH yet"
-        ls -la /opt/microchip/xc8/ || echo "Checking XC8 directory..."
-        
-    - name: Build firmware (alternative with XC8)
-      run: |
-        # Since MPLAB X full IDE is not available, we'll compile directly with XC8
-        # This is a simplified build for CI purposes
-        cd /home/runner/work/PetSafe-CatFlap/PetSafe-CatFlap
-        
-        # Create build output directory
-        mkdir -p build/ci_build
-        
-        # Compile each source file to object code
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c configuration_bits.c -o build/ci_build/configuration_bits.p1 || echo "Compilation step 1..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c interrupts.c -o build/ci_build/interrupts.p1 || echo "Compilation step 2..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c main.c -o build/ci_build/main.p1 || echo "Compilation step 3..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c user.c -o build/ci_build/user.p1 || echo "Compilation step 4..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c serial.c -o build/ci_build/serial.p1 || echo "Compilation step 5..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c rfid.c -o build/ci_build/rfid.p1 || echo "Compilation step 6..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c peripherials.c -o build/ci_build/peripherials.p1 || echo "Compilation step 7..."
-        /opt/microchip/xc8/v2.46/bin/xc8-cc -mcpu=16F886 -c cat.c -o build/ci_build/cat.p1 || echo "Compilation step 8..."
-        
-        echo "Build completed - check for .p1 files"
-        ls -lh build/ci_build/ || echo "No build artifacts yet"
         
     - name: Upload build artifacts
       if: success()
@@ -111,8 +64,8 @@ jobs:
       with:
         name: firmware-${{ matrix.config }}
         path: |
-          build/ci_build/*.p1
-          build/ci_build/*.hex
+          dist/XC8_PIC16F886/production/*.hex
+          dist/XC8_PIC16F886/production/*.elf
         retention-days: 30
         
   static-analysis:

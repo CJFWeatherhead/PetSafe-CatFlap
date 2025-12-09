@@ -1,0 +1,63 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+build/
+dist/
+*.hex
+*.elf
+*.o
+*.p1
+*.d
+*.pre
+*.sym
+*.cmf
+*.cof
+*.hxl
+*.lst
+*.rlf
+*.sdb
+*.obj
+*.err
+*.map
+*.mcp
+*.mcw
+*.mcs
+
+# MPLAB X project files
+nbproject/private/
+nbproject/Package-*.bash
+build/
+nbbuild/
+dist/
+nbdist/
+.dep.inc
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Test artifacts
+test/build/
+
+# Documentation
+*.md
+docs/
+
+# CI files
+.github/
+
+# Logs
+*.log
+install.log
+
+# Temporary files
+*.tmp
+*.bak
+*~

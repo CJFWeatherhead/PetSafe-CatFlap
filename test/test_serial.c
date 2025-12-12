@@ -87,12 +87,12 @@ void test_ring_buffer_data(void)
  */
 void test_uart_divider(void)
 {
-    // DIVIDER should be calculated for 38400 baud
-    // Formula: _XTAL_FREQ/(16 * 38400) - 1
-    // With 19.6608 MHz crystal: 19660800/(16*38400) - 1 = 31
+    // DIVIDER should be calculated for 9600 baud
+    // Formula: _XTAL_FREQ/(16 * 9600) - 1
+    // With 19.6 MHz crystal: 19600000/(16*9600) - 1 = 126.7 ≈ 127
     
     #ifdef _XTAL_FREQ
-        int calculated = (int)(_XTAL_FREQ/(16UL * 38400) - 1);
+        int calculated = (int)(_XTAL_FREQ/(16UL * BAUD_RATE) - 1);
         TEST_ASSERT_EQUAL(calculated, DIVIDER);
     #endif
 }
@@ -147,6 +147,46 @@ void test_multiple_buffers(void)
     TEST_ASSERT_EQUAL_UINT8(2, buffer1.uIndex);
     TEST_ASSERT_EQUAL_UINT8(3, buffer2.rIndex);
     TEST_ASSERT_EQUAL_UINT8(4, buffer2.uIndex);
+}
+
+/**
+ * Test: UART error structure size
+ */
+void test_uart_errors_structure(void)
+{
+    struct UartErrors errors;
+    
+    // Should have three uint8_t fields
+    TEST_ASSERT_EQUAL_size_t(1, sizeof(errors.framingErrors));
+    TEST_ASSERT_EQUAL_size_t(1, sizeof(errors.overrunErrors));
+    TEST_ASSERT_EQUAL_size_t(1, sizeof(errors.bufferOverflows));
+}
+
+/**
+ * Test: UART error initialization
+ */
+void test_uart_errors_init(void)
+{
+    struct UartErrors errors;
+    
+    // Initialize error counters
+    errors.framingErrors = 0;
+    errors.overrunErrors = 0;
+    errors.bufferOverflows = 0;
+    
+    // Verify initialization
+    TEST_ASSERT_EQUAL_UINT8(0, errors.framingErrors);
+    TEST_ASSERT_EQUAL_UINT8(0, errors.overrunErrors);
+    TEST_ASSERT_EQUAL_UINT8(0, errors.bufferOverflows);
+}
+
+/**
+ * Test: Baud rate constant
+ */
+void test_baud_rate_constant(void)
+{
+    // Verify baud rate is 9600
+    TEST_ASSERT_EQUAL(9600, BAUD_RATE);
 }
 
 /**

@@ -35,7 +35,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DIVIDER ((int)(_XTAL_FREQ/(16UL * 38400) -1))
+// Baud rate: 9600 for improved reliability with crystal skew
+// Formula: DIVIDER = (_XTAL_FREQ / (16 * BAUD_RATE)) - 1
+// With 19.6 MHz: (19600000 / (16 * 9600)) - 1 = 126.7 ≈ 127
+#define BAUD_RATE 9600
+#define DIVIDER ((int)(_XTAL_FREQ/(16UL * BAUD_RATE) -1))
 
 void initSerial(void);
 
@@ -43,6 +47,15 @@ void putch(char byte);
 void putShort(uint16_t v);
 
 #define SER_BUFFER 16
+
+// Error flags for UART monitoring
+struct UartErrors {
+    uint8_t framingErrors;   // Count of framing errors
+    uint8_t overrunErrors;   // Count of overrun errors  
+    uint8_t bufferOverflows; // Count of ring buffer overflows
+};
+extern volatile struct UartErrors uartErrors;
+
 struct RingBuffer{
         uint8_t rIndex;
         uint8_t uIndex;

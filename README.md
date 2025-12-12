@@ -107,8 +107,9 @@ The firmware was originally designed for the PetSafe Pet Porte 100-1023 **rev.X4
 
 The firmware supports serial communication for monitoring and control:
 
-- **Baud rate**: 38400 bps
+- **Baud rate**: 9600 bps (reduced from 38400 for improved reliability with crystal skew)
 - **Data format**: 8N1 (8 data bits, no parity, 1 stop bit)
+- **Startup Banner**: Displays firmware info on initialization
 
 ### Commands
 
@@ -305,7 +306,7 @@ PIC16F886 Microcontroller
 - **Operating Voltage**: 5V
 - **RFID Frequency**: 134.2 kHz
 - **Crystal Oscillator**: 19.6 MHz (HS mode)
-- **Serial Baud Rate**: 38400 bps
+- **Serial Baud Rate**: 9600 bps (improved reliability)
 
 ---
 

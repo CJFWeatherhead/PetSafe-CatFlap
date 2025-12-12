@@ -308,8 +308,10 @@ void main(void)
     /* Initialize I/O and Peripherals for application */
     InitApp();
     lightThd = getConfiguration(LIGHT_CFG);    
-    if(lightThd>1023){
+    // Initialize EEPROM if unprogrammed or invalid (0xFFFF=unprogrammed, >1023=out of range)
+    if(lightThd > 1023){
         lightThd = 512;
+        setConfiguration(LIGHT_CFG, lightThd);
     }
     switchMode(MODE_NORMAL);
     ms_t lastLightRead = millis();

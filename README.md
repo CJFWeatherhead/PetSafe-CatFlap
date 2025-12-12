@@ -85,7 +85,8 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 ## 📖 Documentation
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete guide to deploying firmware to PIC16F886 (highly recommended for first-time users!)
-- **[RELEASE.md](RELEASE.md)** - Guide to creating and downloading releases
+- **[RELEASE.md](RELEASE.md)** - Complete guide to creating and downloading releases
+- **[QUICK_RELEASE_GUIDE.md](QUICK_RELEASE_GUIDE.md)** - Quick reference for creating releases (3 steps)
 - **[DOCKER_BUILD.md](DOCKER_BUILD.md)** - Docker-based build system documentation (troubleshooting, architecture, and advanced usage)
 - **[CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md)** - Detailed code architecture and module documentation
 - **[TESTING.md](TESTING.md)** - Testing guide including unit tests, CI/CD, and static analysis

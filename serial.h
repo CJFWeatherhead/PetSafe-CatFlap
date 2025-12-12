@@ -37,7 +37,8 @@
 
 // Baud rate: 9600 for improved reliability with crystal skew
 // Formula: DIVIDER = (_XTAL_FREQ / (16 * BAUD_RATE)) - 1
-// With 19.6 MHz: (19600000 / (16 * 9600)) - 1 = 126.7 ≈ 127
+// With _XTAL_FREQ=19600000: (19600000 / (16 * 9600)) - 1 = 126.7 ≈ 127
+// Actual baud: 9646 bps (0.48% error - well within UART specifications)
 #define BAUD_RATE 9600
 #define DIVIDER ((int)(_XTAL_FREQ/(16UL * BAUD_RATE) -1))
 

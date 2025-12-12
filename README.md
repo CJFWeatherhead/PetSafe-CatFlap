@@ -125,6 +125,8 @@ The firmware supports serial communication for monitoring and control:
 
 Example status response: `AM0L512P512S3\n`
 
+> **⚠️ Breaking Change:** If upgrading from a previous version, the serial baud rate has changed from 38400 to 9600 bps. See [SERIAL_MIGRATION_GUIDE.md](SERIAL_MIGRATION_GUIDE.md) for detailed migration instructions.
+
 ## 🏗️ Building the Project
 
 ### Using Docker (Recommended for CI/CD and Cross-Platform)

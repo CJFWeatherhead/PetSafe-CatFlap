@@ -89,7 +89,8 @@ void test_uart_divider(void)
 {
     // DIVIDER should be calculated for 9600 baud
     // Formula: _XTAL_FREQ/(16 * 9600) - 1
-    // With 19.6 MHz crystal: 19600000/(16*9600) - 1 = 126.7 ≈ 127
+    // With test mock _XTAL_FREQ=19660800: 19660800/(16*9600) - 1 = 127.0 = 127
+    // Note: Actual hardware uses 19600000 which gives 126.7 ≈ 127
     
     #ifdef _XTAL_FREQ
         int calculated = (int)(_XTAL_FREQ/(16UL * BAUD_RATE) - 1);

@@ -33,9 +33,12 @@ void __interrupt () isr(void)
             uartErrors.overrunErrors++;
             RCSTAbits.CREN = 0;
             RCSTAbits.CREN = 1;
-            // Read to clear FIFO
-            uint8_t dummy = RCREG;
-            (void)dummy;
+            // Read to clear FIFO (PIC16F886 has 2-deep FIFO)
+            // Must read until FIFO is empty
+            while(RCIF){
+                uint8_t dummy = RCREG;
+                (void)dummy;
+            }
         }else{
             // No errors - read data into buffer
             uint8_t nextIndex = rxBuffer.rIndex + 1;

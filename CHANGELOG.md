@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Automated release workflow for incremental releases
+- GitHub Actions workflow for creating releases from version tags
+- Automatic attachment of .hex and .elf files to releases
+- SHA256 checksums for release artifacts
+- RELEASE.md documentation for release process
+- Pre-built firmware downloads via GitHub Releases
+
+### Changed
+- README.md updated with download instructions for pre-built firmware
+- Release artifacts now versioned with tag names (e.g., PetSafe-CatFlap-v1.0.0.hex)
+
+## [1.0.0] - Documentation Fork
+
+### Added
 - Comprehensive documentation (DEPLOYMENT.md, CODE_ARCHITECTURE.md)
 - Standard Git project files (LICENSE, CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md)
 - Enhanced README with better structure

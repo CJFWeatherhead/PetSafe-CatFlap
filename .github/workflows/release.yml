@@ -1,0 +1,179 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.0.1, v2.0.0, etc.
+  workflow_dispatch:  # Allow manual triggering for testing
+
+# Set default permissions to read-only for security
+permissions:
+  contents: write  # Need write permission to create releases
+
+jobs:
+  build-and-release:
+    name: Build Firmware and Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper version info
+      
+    - name: Get version from tag
+      id: get_version
+      run: |
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION="manual-$(date +%Y%m%d-%H%M%S)"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+        
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build XC8 Docker image
+      run: |
+        echo "Building Docker image with XC8 compiler..."
+        docker build -t xc8-pic-builder:latest .
+        
+    - name: Build firmware using Docker
+      run: |
+        echo "Building PIC16F886 firmware in Docker container..."
+        docker run --rm \
+          -v ${{ github.workspace }}:/project \
+          -w /project \
+          xc8-pic-builder:latest \
+          /bin/bash -c "./build.sh"
+        
+    - name: Verify build output
+      run: |
+        echo "Checking for generated .hex file..."
+        if [ -f dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex ]; then
+          echo "✓ Build successful!"
+          echo "Firmware file: dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex"
+          echo "File size: $(wc -c < dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex) bytes"
+          ls -lh dist/XC8_PIC16F886/production/
+        else
+          echo "✗ ERROR: .hex file not found"
+          exit 1
+        fi
+        
+    - name: Prepare release artifacts
+      id: prepare_artifacts
+      run: |
+        VERSION="${{ steps.get_version.outputs.version }}"
+        RELEASE_DIR="release-artifacts"
+        mkdir -p "$RELEASE_DIR"
+        
+        # Copy and rename artifacts with version
+        cp dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.hex \
+           "$RELEASE_DIR/PetSafe-CatFlap-${VERSION}.hex"
+        
+        # Copy ELF file if it exists
+        if [ -f dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.elf ]; then
+          cp dist/XC8_PIC16F886/production/PetSafe-CatFlap.production.elf \
+             "$RELEASE_DIR/PetSafe-CatFlap-${VERSION}.elf"
+        fi
+        
+        # Create a checksum file
+        cd "$RELEASE_DIR"
+        sha256sum *.hex > checksums.txt
+        if [ -f *.elf ]; then
+          sha256sum *.elf >> checksums.txt
+        fi
+        cd ..
+        
+        echo "Release artifacts prepared:"
+        ls -lh "$RELEASE_DIR"
+        
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        VERSION="${{ steps.get_version.outputs.version }}"
+        cat > release_notes.md << EOF
+        # PetSafe Cat Flap Firmware ${VERSION}
+        
+        ## 📦 Release Assets
+        
+        - **PetSafe-CatFlap-${VERSION}.hex** - Firmware binary for PIC16F886 (Intel HEX format)
+        - **PetSafe-CatFlap-${VERSION}.elf** - Debug symbols (ELF format)
+        - **checksums.txt** - SHA256 checksums for verification
+        
+        ## 🔧 Installation
+        
+        1. Download the \`.hex\` file from the assets below
+        2. Use a PIC programmer (PICkit 3, PICkit 4, ICD 3, or Snap)
+        3. Flash the firmware to your PIC16F886 microcontroller
+        4. See [DEPLOYMENT.md](https://github.com/CJFWeatherhead/PetSafe-CatFlap/blob/main/DEPLOYMENT.md) for detailed instructions
+        
+        ## ⚠️ Important Notes
+        
+        - This firmware was originally tested on **PetSafe Pet Porte 100-1023 rev.X4 hardware only**
+        - Test thoroughly before deploying to your cat flap
+        - Ensure you have a backup method for your pet to access their space
+        - See [SECURITY.md](https://github.com/CJFWeatherhead/PetSafe-CatFlap/blob/main/SECURITY.md) for security considerations
+        
+        ## 📋 Hardware Requirements
+        
+        - PetSafe Pet Porte 100-1023 PCB (tested on rev.X4)
+        - PIC16F886 microcontroller
+        - Compatible PIC programmer
+        
+        ## 🐱 Features
+        
+        - RFID tag authentication (134.2 kHz EM4100 protocol)
+        - Multiple operating modes (Normal, Vet, Night, Learn, Clear, Open)
+        - Light sensor integration for automatic operation
+        - Serial communication interface (38400 baud)
+        - LED indicators and buzzer feedback
+        
+        ## 📖 Documentation
+        
+        - [README.md](https://github.com/CJFWeatherhead/PetSafe-CatFlap/blob/main/README.md) - Project overview
+        - [DEPLOYMENT.md](https://github.com/CJFWeatherhead/PetSafe-CatFlap/blob/main/DEPLOYMENT.md) - Complete deployment guide
+        - [CODE_ARCHITECTURE.md](https://github.com/CJFWeatherhead/PetSafe-CatFlap/blob/main/CODE_ARCHITECTURE.md) - Technical documentation
+        - [TESTING.md](https://github.com/CJFWeatherhead/PetSafe-CatFlap/blob/main/TESTING.md) - Testing guide
+        
+        ## 🔍 Verification
+        
+        Verify the integrity of downloaded files using the checksums:
+        \`\`\`bash
+        sha256sum -c checksums.txt
+        \`\`\`
+        
+        ---
+        
+        **Build Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        **Git Commit**: ${GITHUB_SHA:0:7}
+        **Built by**: GitHub Actions
+        EOF
+        
+        echo "Release notes generated"
+        cat release_notes.md
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        name: Release ${{ steps.get_version.outputs.version }}
+        body_path: release_notes.md
+        files: |
+          release-artifacts/*.hex
+          release-artifacts/*.elf
+          release-artifacts/checksums.txt
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload artifacts (for manual workflow runs)
+      if: github.ref_type != 'tag'
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware-release-${{ steps.get_version.outputs.version }}
+        path: release-artifacts/
+        retention-days: 30

@@ -19,11 +19,19 @@ void __interrupt () isr(void)
         TMR1IF = 0;
         ++millisValue;
     }else if(RCIF){
-        rxBuffer.buffer[rxBuffer.rIndex] = RCREG;
-        RCIF = 0;
-        if(++rxBuffer.rIndex == SER_BUFFER){
-            rxBuffer.rIndex = 0;
+        uint8_t nextIndex = rxBuffer.rIndex + 1;
+        if(nextIndex == SER_BUFFER){
+            nextIndex = 0;
         }
+        // Only store byte if buffer is not full (prevent overflow)
+        if(nextIndex != rxBuffer.uIndex){
+            rxBuffer.buffer[rxBuffer.rIndex] = RCREG;
+            rxBuffer.rIndex = nextIndex;
+        }else{
+            // Buffer full - discard byte to prevent data corruption
+            (void)RCREG;  // Read to clear RCIF
+        }
+        RCIF = 0;
     }
 }
 

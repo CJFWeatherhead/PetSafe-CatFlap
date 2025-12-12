@@ -60,8 +60,8 @@ uint8_t saveCat(Cat* cat)
 {
     uint8_t offset = CAT_OFFSET;
     for(uint8_t i=0;i<CAT_SLOTS;++i){
-        uint8_t tCrc = eeprom_read(offset);
-        tCrc |= eeprom_read(offset+1);
+        uint16_t tCrc = eeprom_read(offset);
+        tCrc |= (eeprom_read(offset+1) << 8);
         if(tCrc == 0x0){
             eeprom_write(offset, cat->crc & 0xFF);
             eeprom_write(offset+1, ((cat->crc>>8) & 0xFF));

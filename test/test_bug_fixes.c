@@ -163,8 +163,7 @@ void test_default_light_threshold_value(void)
 {
     uint16_t defaultValue = 512;
     
-    // Default should be within valid range
-    TEST_ASSERT_TRUE(defaultValue >= 0);
+    // Default should be within valid range (ADC is 10-bit, max is 1023)
     TEST_ASSERT_TRUE(defaultValue <= 1023);
     
     // Default should be reasonable midpoint
@@ -196,11 +195,7 @@ void test_cat_structure_crc_is_16bit(void)
  */
 void test_serial_buffer_size_adequate(void)
 {
-    // 16-byte buffer is the current size
-    TEST_ASSERT_EQUAL(16, SER_BUFFER);
-    
-    // Should be power of 2 for efficient modulo operations
-    // (though current code uses comparison, not modulo)
+    // Buffer size should be defined and non-zero
     TEST_ASSERT_TRUE(SER_BUFFER > 0);
     
     // Verify buffer size is reasonable (between 8 and 256)

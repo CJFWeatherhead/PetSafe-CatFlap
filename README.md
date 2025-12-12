@@ -107,9 +107,15 @@ The firmware was originally designed for the PetSafe Pet Porte 100-1023 **rev.X4
 
 The firmware supports serial communication for monitoring and control:
 
-- **Baud rate**: 9600 bps (reduced from 38400 for improved reliability with crystal skew)
+- **Baud rate**: 9600 bps (reduced from 38400 for improved reliability)
+  - Previous 38400 baud had 2.91% error (39516 actual baud)
+  - New 9600 baud has 0.48% error (9646 actual baud) - much more reliable!
 - **Data format**: 8N1 (8 data bits, no parity, 1 stop bit)
 - **Startup Banner**: Displays firmware info on initialization
+- **Error Handling**: Automatic detection and recovery from UART errors
+  - Framing errors (FERR)
+  - Overrun errors (OERR)
+  - Ring buffer overflows
 
 ### Commands
 

@@ -107,8 +107,15 @@ The firmware was originally designed for the PetSafe Pet Porte 100-1023 **rev.X4
 
 The firmware supports serial communication for monitoring and control:
 
-- **Baud rate**: 38400 bps
+- **Baud rate**: 9600 bps (reduced from 38400 for improved reliability)
+  - Previous 38400 baud had 2.91% error (39516 actual baud)
+  - New 9600 baud has 0.48% error (9646 actual baud) - much more reliable!
 - **Data format**: 8N1 (8 data bits, no parity, 1 stop bit)
+- **Startup Banner**: Displays firmware info on initialization
+- **Error Handling**: Automatic detection and recovery from UART errors
+  - Framing errors (FERR)
+  - Overrun errors (OERR)
+  - Ring buffer overflows
 
 ### Commands
 
@@ -117,6 +124,8 @@ The firmware supports serial communication for monitoring and control:
 - `Mx` - Set operating mode (x = 0-6)
 
 Example status response: `AM0L512P512S3\n`
+
+> **⚠️ Breaking Change:** If upgrading from a previous version, the serial baud rate has changed from 38400 to 9600 bps. See [SERIAL_MIGRATION_GUIDE.md](SERIAL_MIGRATION_GUIDE.md) for detailed migration instructions.
 
 ## 🏗️ Building the Project
 
@@ -305,7 +314,7 @@ PIC16F886 Microcontroller
 - **Operating Voltage**: 5V
 - **RFID Frequency**: 134.2 kHz
 - **Crystal Oscillator**: 19.6 MHz (HS mode)
-- **Serial Baud Rate**: 38400 bps
+- **Serial Baud Rate**: 9600 bps (improved reliability)
 
 ---
 

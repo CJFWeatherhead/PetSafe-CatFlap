@@ -401,15 +401,17 @@ uint8_t readRFID(uint8_t* id, uint8_t len, uint16_t* crcComputed, uint16_t* crcR
 #### UART Configuration
 
 ```c
-#define DIVIDER ((int)(_XTAL_FREQ/(16UL * 38400) -1))
+#define BAUD_RATE 9600
+#define DIVIDER ((int)(_XTAL_FREQ/(16UL * BAUD_RATE) -1))
 ```
 
 **Settings**:
-- **Baud Rate**: 38400 bps (as configured in serial.h)
+- **Baud Rate**: 9600 bps (reduced from 38400 for improved reliability with crystal skew)
 - **Data Bits**: 8
 - **Parity**: None
 - **Stop Bits**: 1
 - **Flow Control**: None
+- **Error Handling**: Automatic detection and recovery from framing/overrun errors
 
 #### Ring Buffer Implementation
 
@@ -428,15 +430,34 @@ struct RingBuffer {
 - Written by interrupt service routine
 - Read by main application
 - Capacity: 16 bytes
+- Overflow protection with error counting
+
+#### Error Tracking
+
+```c
+struct UartErrors {
+    uint8_t framingErrors;   // Count of framing errors
+    uint8_t overrunErrors;   // Count of overrun errors
+    uint8_t bufferOverflows; // Count of ring buffer overflows
+};
+```
+
+**Error Handling**:
+- **Framing Errors**: Detected when FERR flag is set, byte discarded and CREN toggled
+- **Overrun Errors**: Detected when OERR flag is set, CREN reset to clear
+- **Buffer Overflows**: Tracked when ring buffer is full, oldest data protected
+- All errors automatically counted for diagnostics
 
 #### Functions
 
 **`void initSerial(void)`**
 - Configures UART hardware
-- Sets baud rate divider
+- Sets baud rate divider (9600 bps)
 - Enables continuous reception
 - Enables RX interrupt
 - Initializes ring buffer
+- Resets error counters
+- Prints startup banner with firmware information
 
 **`void putch(char byte)`**
 - Transmits single character
@@ -1051,10 +1072,11 @@ MPLAB X generates Makefile in `nbproject/` directory.
 - Ensure 500ms activation time
 
 **Serial not responding**:
-- Verify baud rate (38400)
+- Verify baud rate (9600)
 - Check TX/RX connections (crossed?)
 - Ensure interrupts enabled
 - Check ring buffer overflow
+- Monitor UART error counters (framing, overrun, buffer overflow)
 
 **Random resets**:
 - Check power supply stability

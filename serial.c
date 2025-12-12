@@ -13,6 +13,7 @@
 #define SERIAL_TIMEOUT 5
 
 volatile struct RingBuffer rxBuffer;
+volatile struct UartErrors uartErrors;
 
 
 void initSerial(void)
@@ -36,6 +37,21 @@ void initSerial(void)
    rxBuffer.rIndex = 0;
    rxBuffer.uIndex = 0;
    
+   // Initialize error counters
+   uartErrors.framingErrors = 0;
+   uartErrors.overrunErrors = 0;
+   uartErrors.bufferOverflows = 0;
+   
+   // Print startup banner to indicate serial is ready
+   // Small delay to let UART stabilize
+   __delay_ms(10);
+   printf("\r\n");
+   printf("========================================\r\n");
+   printf("PetSafe Cat Flap - Alternative Firmware\r\n");
+   printf("Serial Interface Ready\r\n");
+   printf("Baud Rate: %d bps\r\n", BAUD_RATE);
+   printf("========================================\r\n");
+   printf("\r\n");
 }
 
 /**
@@ -44,8 +60,9 @@ void initSerial(void)
  */
 void putch(char byte)
 {
-	while(!TXIF)
-		continue;
+	while(!TXIF) {
+		// Wait for transmit buffer to be ready
+	}
 	TXREG = byte;
 }
 

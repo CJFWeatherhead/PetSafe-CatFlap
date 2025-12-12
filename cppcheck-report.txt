@@ -4,5 +4,4 @@ main.c:290:20: style: Parameter 'c' can be declared as pointer to const [constPa
 main.c:157:15: style: Variable 'r' is assigned a value that is never used. [unreadVariable]
 rfid.c:198:18: style: Condition 'r!=0' is always false [knownConditionTrueFalse]
 rfid.c:202:14: style: Condition 'r==0' is always true [knownConditionTrueFalse]
-serial.c:48:3: style: 'continue' is redundant since it is the last statement in a loop. [redundantContinue]
 nofile:0:0: information: Active checkers: 113/592 (use --checkers-report=<filename> to see details) [checkersReport]

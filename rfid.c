@@ -13,10 +13,18 @@
 #include "peripherials.h"
 #include "interrupts.h"
 
+// RFID-specific constants
+#define RFID_SYNC_TIMEOUT_MS 100
+#define RFID_ADC_THRESHOLD 512
+#define RFID_CARRIER_THRESHOLD 200
+#define RFID_STABILIZATION_DELAY_MS 2
+
 static bool nextBit = false;
 
 uint16_t readRFIDADCS(void){    
-    ADCON0 = 0b10001001;    
+    ADCON0 = 0b10001001;
+    // Wait for ADC acquisition time (PIC16F886 datasheet requires 20µs minimum)
+    __delay_us(ADC_ACQUISITION_DELAY_US);
     ADCON0bits.GO_DONE = 1;
     while(ADCON0bits.GO_DONE){}
     uint16_t ret = ADRESL;
@@ -25,7 +33,9 @@ uint16_t readRFIDADCS(void){
 }
 
 uint16_t readRFIDADC(void){
-    ADCON0 = 0b00001001;    
+    ADCON0 = 0b00001001;
+    // Wait for ADC acquisition time (PIC16F886 datasheet requires 20µs minimum)
+    __delay_us(ADC_ACQUISITION_DELAY_US);
     ADCON0bits.GO_DONE = 1;
     while(ADCON0bits.GO_DONE){}
     uint16_t ret = ADRESL;
@@ -35,7 +45,7 @@ uint16_t readRFIDADC(void){
 
 bool readRFIDBitADC(void){
     
-    return readRFIDADC()>512;
+    return readRFIDADC() > RFID_ADC_THRESHOLD;
 }
 
 bool readBit(){
@@ -85,7 +95,7 @@ void setRFIDPWM(bool on)
         RFID_RL_ENABLE = 1; //Enable the 3/4 output
         L293_LOGIC = 1;     //Power the logic
         //Wait for analog + ADC to be stable
-        __delay_ms(2);
+        __delay_ms(RFID_STABILIZATION_DELAY_MS);
     }else{
         //Disable output
         L293_LOGIC = 0;
@@ -101,9 +111,14 @@ void setRFIDPWM(bool on)
 }
 
 bool waitEdge(){
-    
     bool v = readRFIDBitADC();
-    while(v == readRFIDBitADC()){}
+    ms_t start = millis();
+    // Wait for edge with timeout to prevent infinite loop
+    while(v == readRFIDBitADC()){
+        if((millis() - start) > RFID_SYNC_TIMEOUT_MS){
+            return !v; // Timeout - return opposite of initial value
+        }
+    }
     return !v;
 }
 
@@ -114,8 +129,8 @@ bool waitEdge(){
 uint8_t syncRFID(void){
     //Wait for header    
     ms_t t = millis();
-    while((millis()-t)<100){
-        if(readRFIDADCS()>200){
+    while((millis()-t) < RFID_SYNC_TIMEOUT_MS){
+        if(readRFIDADCS() > RFID_CARRIER_THRESHOLD){
             continue;                    
         }
         nextBit = waitEdge();        
@@ -136,18 +151,14 @@ uint8_t syncRFID(void){
 uint8_t readRFIDByte(uint8_t* d)
 {
     *d = 0x0;
-    //Start bit
-//    if(readBit()){
+    //Start bit - always read and discard
     readBit();
-        for(uint8_t i=0;i<8;++i){            
-            if(readBit()){
-                *d |= (1<<i);
-            }            
-        }
-        return 0;
-/*    }else{
-        return BAD_START;
-    }*/
+    for(uint8_t i=0;i<8;++i){            
+        if(readBit()){
+            *d |= (1<<i);
+        }            
+    }
+    return 0;
 }
 
 
@@ -194,23 +205,18 @@ uint8_t readRFID(uint8_t* id, uint8_t len, uint16_t* crcComputed,
         //Read only 10 bytes (after header)
         uint8_t bytes[10];
         for(uint8_t k=0;k<10;++k){
-            r = readRFIDByte(&bytes[k]);
-            if(r != 0){ 
-                break;
-            }
+            readRFIDByte(&bytes[k]);
         }
-        if(r == 0){      
-            //Copy ID to array
-            for(uint8_t i=0;i<len;++i){
-                id[i] = bytes[i];                    
-            }
-            //Compute CRC
-            *crcRead = bytes[8];
-            *crcRead |= (bytes[9]<<8);
-            *crcComputed = crc(bytes, 8); 
-            if(*crcRead != *crcComputed){
-                r = BAD_CRC;
-            }
+        //Copy ID to array
+        for(uint8_t i=0;i<len;++i){
+            id[i] = bytes[i];                    
+        }
+        //Compute CRC
+        *crcRead = bytes[8];
+        *crcRead |= (bytes[9]<<8);
+        *crcComputed = crc(bytes, 8); 
+        if(*crcRead != *crcComputed){
+            r = BAD_CRC;
         }
     }
     //Put excitation off

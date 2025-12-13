@@ -174,11 +174,21 @@ jobs:
         echo "Verifying minimum test coverage..."
         # Ensure we have at least 50 tests (current: 55)
         # This prevents accidental removal of tests
-        if ceedling test:all 2>&1 | grep -q "TESTED:.*[5-9][0-9]\|TESTED:.*[1-9][0-9][0-9]"; then
-          echo "✓ Test count verification passed (minimum 50 tests)"
+        
+        # Extract test count from output
+        TEST_OUTPUT=$(ceedling test:all 2>&1)
+        TEST_COUNT=$(echo "$TEST_OUTPUT" | grep "TESTED:" | awk '{print $2}')
+        
+        echo "Current test count: $TEST_COUNT"
+        
+        MIN_TESTS=50
+        if [ "$TEST_COUNT" -ge "$MIN_TESTS" ]; then
+          echo "✓ Test count verification passed ($TEST_COUNT tests >= $MIN_TESTS minimum)"
         else
           echo "✗ ERROR: Test count below minimum threshold"
-          echo "Current tests must be maintained or increased"
+          echo "Current: $TEST_COUNT tests"
+          echo "Required: $MIN_TESTS tests minimum"
+          echo "Tests must be maintained or increased, not removed"
           exit 1
         fi
         

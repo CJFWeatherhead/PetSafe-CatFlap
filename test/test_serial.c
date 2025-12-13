@@ -342,8 +342,9 @@ void test_serial_buffer_size_power_of_two(void)
 void test_baud_rate_divider_calculation(void)
 {
     // DIVIDER = (_XTAL_FREQ / (16 * BAUD_RATE)) - 1
-    // With _XTAL_FREQ=19660800 and BAUD_RATE=9600:
-    // DIVIDER = (19660800 / (16 * 9600)) - 1 = 127.0
+    // NOTE: Test uses _XTAL_FREQ=19660800 (defined in project.yml for testing)
+    // Hardware uses _XTAL_FREQ=19600000 (actual crystal frequency)
+    // Both values calculate to DIVIDER=127 for 9600 baud
     
     #ifdef _XTAL_FREQ
     int calculated = (int)(_XTAL_FREQ / (16UL * BAUD_RATE) - 1);

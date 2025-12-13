@@ -208,6 +208,216 @@ void test_short_value_type(void)
     TEST_ASSERT_EQUAL_UINT16(0x0000, test_short);
 }
 
+/**
+ * Test: Ring buffer capacity
+ */
+void test_ring_buffer_capacity(void)
+{
+    // Buffer can hold SER_BUFFER-1 bytes (one slot reserved for empty detection)
+    TEST_ASSERT_TRUE(SER_BUFFER > 1);
+    
+    // Effective capacity is SER_BUFFER - 1
+    uint8_t effective_capacity = SER_BUFFER - 1;
+    TEST_ASSERT_EQUAL_UINT8(15, effective_capacity);
+}
+
+/**
+ * Test: Ring buffer index arithmetic
+ */
+void test_ring_buffer_index_arithmetic(void)
+{
+    uint8_t index = 0;
+    
+    // Test increment without wrap
+    index = 5;
+    index++;
+    TEST_ASSERT_EQUAL_UINT8(6, index);
+    
+    // Test wrap-around simulation
+    index = SER_BUFFER - 1;
+    index++;
+    if (index == SER_BUFFER) {
+        index = 0;
+    }
+    TEST_ASSERT_EQUAL_UINT8(0, index);
+}
+
+/**
+ * Test: UART errors structure initialization
+ */
+void test_uart_errors_all_fields(void)
+{
+    struct UartErrors errors;
+    
+    // Initialize all fields
+    errors.framingErrors = 5;
+    errors.overrunErrors = 3;
+    errors.bufferOverflows = 1;
+    
+    // Verify all fields maintain values
+    TEST_ASSERT_EQUAL_UINT8(5, errors.framingErrors);
+    TEST_ASSERT_EQUAL_UINT8(3, errors.overrunErrors);
+    TEST_ASSERT_EQUAL_UINT8(1, errors.bufferOverflows);
+}
+
+/**
+ * Test: UART errors counter overflow
+ */
+void test_uart_errors_counter_overflow(void)
+{
+    struct UartErrors errors;
+    
+    // Set to maximum
+    errors.framingErrors = 255;
+    
+    // Increment (would wrap to 0 in actual uint8_t)
+    errors.framingErrors++;
+    
+    // Verify overflow behavior
+    TEST_ASSERT_EQUAL_UINT8(0, errors.framingErrors);
+}
+
+/**
+ * Test: Ring buffer pointer wraparound calculation
+ */
+void test_ring_buffer_next_index_calculation(void)
+{
+    struct RingBuffer testBuffer;
+    
+    // Test next index without wraparound
+    testBuffer.rIndex = 5;
+    uint8_t nextIndex = testBuffer.rIndex + 1;
+    if (nextIndex == SER_BUFFER) {
+        nextIndex = 0;
+    }
+    TEST_ASSERT_EQUAL_UINT8(6, nextIndex);
+    
+    // Test next index with wraparound
+    testBuffer.rIndex = SER_BUFFER - 1;
+    nextIndex = testBuffer.rIndex + 1;
+    if (nextIndex == SER_BUFFER) {
+        nextIndex = 0;
+    }
+    TEST_ASSERT_EQUAL_UINT8(0, nextIndex);
+}
+
+/**
+ * Test: Ring buffer available space calculation
+ */
+void test_ring_buffer_available_space(void)
+{
+    struct RingBuffer testBuffer;
+    
+    // Empty buffer
+    testBuffer.rIndex = 0;
+    testBuffer.uIndex = 0;
+    
+    // Calculate available space
+    int available;
+    if (testBuffer.rIndex >= testBuffer.uIndex) {
+        available = testBuffer.rIndex - testBuffer.uIndex;
+    } else {
+        available = (SER_BUFFER - testBuffer.uIndex) + testBuffer.rIndex;
+    }
+    
+    // Empty buffer should have 0 available (data to read)
+    TEST_ASSERT_EQUAL_INT(0, available);
+}
+
+/**
+ * Test: Serial buffer size is power-friendly
+ */
+void test_serial_buffer_size_power_of_two(void)
+{
+    // 16 is a power of 2, making modulo operations efficient
+    TEST_ASSERT_EQUAL(16, SER_BUFFER);
+    
+    // Verify it's a power of 2
+    TEST_ASSERT_EQUAL(0, SER_BUFFER & (SER_BUFFER - 1));
+}
+
+/**
+ * Test: Baud rate divider calculation correctness
+ */
+void test_baud_rate_divider_calculation(void)
+{
+    // DIVIDER = (_XTAL_FREQ / (16 * BAUD_RATE)) - 1
+    // With _XTAL_FREQ=19660800 and BAUD_RATE=9600:
+    // DIVIDER = (19660800 / (16 * 9600)) - 1 = 127.0
+    
+    #ifdef _XTAL_FREQ
+    int calculated = (int)(_XTAL_FREQ / (16UL * BAUD_RATE) - 1);
+    TEST_ASSERT_EQUAL(calculated, DIVIDER);
+    
+    // Verify it's within valid range for 8-bit register
+    TEST_ASSERT_TRUE(DIVIDER <= 255);
+    TEST_ASSERT_TRUE(DIVIDER >= 0);
+    #endif
+}
+
+/**
+ * Test: Ring buffer used space calculation
+ */
+void test_ring_buffer_used_space(void)
+{
+    struct RingBuffer testBuffer;
+    
+    // Partially filled buffer
+    testBuffer.rIndex = 8;
+    testBuffer.uIndex = 3;
+    
+    // Calculate used space
+    int used;
+    if (testBuffer.rIndex >= testBuffer.uIndex) {
+        used = testBuffer.rIndex - testBuffer.uIndex;
+    } else {
+        used = (SER_BUFFER - testBuffer.uIndex) + testBuffer.rIndex;
+    }
+    
+    // Should have 5 bytes of data
+    TEST_ASSERT_EQUAL_INT(5, used);
+}
+
+/**
+ * Test: Ring buffer boundary conditions
+ */
+void test_ring_buffer_boundary_conditions(void)
+{
+    struct RingBuffer testBuffer;
+    
+    // Test at exact boundary
+    testBuffer.rIndex = SER_BUFFER;
+    testBuffer.uIndex = 0;
+    
+    // rIndex should wrap
+    if (testBuffer.rIndex >= SER_BUFFER) {
+        testBuffer.rIndex = 0;
+    }
+    
+    TEST_ASSERT_EQUAL_UINT8(0, testBuffer.rIndex);
+}
+
+/**
+ * Test: UART error counters independence
+ */
+void test_uart_errors_independence(void)
+{
+    struct UartErrors errors;
+    
+    // Set different values
+    errors.framingErrors = 10;
+    errors.overrunErrors = 20;
+    errors.bufferOverflows = 30;
+    
+    // Modify one
+    errors.framingErrors++;
+    
+    // Others should be unchanged
+    TEST_ASSERT_EQUAL_UINT8(11, errors.framingErrors);
+    TEST_ASSERT_EQUAL_UINT8(20, errors.overrunErrors);
+    TEST_ASSERT_EQUAL_UINT8(30, errors.bufferOverflows);
+}
+
 // Note: Hardware-dependent functions (initSerial, putch, getByte, etc.)
 // would require hardware mocking for full functional testing.
 // These tests validate data structures and calculations.

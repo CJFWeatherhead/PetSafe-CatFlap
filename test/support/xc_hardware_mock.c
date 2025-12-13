@@ -63,3 +63,34 @@ uint8_t TMR1H = 0;
 uint8_t TMR1L = 0;
 uint8_t T2CON = 0;
 uint8_t PR2 = 0;
+
+// Interrupt registers
+uint8_t INTCON = 0;
+uint8_t PIE1 = 0;
+uint8_t PIE2 = 0;
+uint8_t PIR1 = 0;
+uint8_t PIR2 = 0;
+
+// Additional registers
+uint8_t CCP2CON = 0;
+uint8_t WPUB = 0;
+
+// Bit-addressable structures
+OPTION_REG_bits_t OPTION_REGbits = {0};
+T1CON_bits_t T1CONbits = {0};
+PIR1_bits_t PIR1bits = {0};
+PIE1_bits_t PIE1bits = {0};
+INTCON_bits_t INTCONbits = {0};
+ADCON0_bits_t ADCON0bits = {0};
+RCSTA_bits_t RCSTAbits = {0};
+T2CON_bits_t T2CONbits = {0};
+TRISC_bits_t TRISCbits = {0};
+PORTA_bits_t PORTAbits = {0};
+PORTB_bits_t PORTBbits = {0};
+PORTC_bits_t PORTCbits = {0};
+
+// Mock ADC result
+uint16_t mockADCResult = 0;
+
+// Mock millisecond counter
+uint32_t mockMillis = 0;

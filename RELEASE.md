@@ -179,7 +179,7 @@ Increment for **backward-compatible bug fixes**:
 
 ## Manual Release Testing
 
-You can test the release workflow without creating a tag:
+You can trigger the release workflow manually without creating a tag:
 
 **Trigger manual build:**
 1. Go to [Actions tab](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions)
@@ -187,7 +187,14 @@ You can test the release workflow without creating a tag:
 3. Click "Run workflow"
 4. Select branch and click "Run workflow"
 
-This creates artifacts but **does not create a release** (only tags trigger releases).
+This will create a **pre-release** with a timestamp-based version (e.g., `manual-20241213-151030`) instead of a semantic version tag. Manual releases are marked as pre-releases to distinguish them from official tagged releases.
+
+**Note:** Manual releases are useful for:
+- Testing the release workflow
+- Creating development builds
+- Sharing firmware with testers before an official release
+
+For production releases, always use proper version tags (e.g., `v1.0.1`).
 
 ## Troubleshooting
 

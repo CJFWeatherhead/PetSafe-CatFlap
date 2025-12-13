@@ -157,23 +157,16 @@ jobs:
         
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
       with:
         name: Release ${{ steps.get_version.outputs.version }}
+        tag_name: ${{ steps.get_version.outputs.version }}
         body_path: release_notes.md
         files: |
           release-artifacts/*.hex
           release-artifacts/*.elf
           release-artifacts/checksums.txt
         draft: false
-        prerelease: false
+        prerelease: ${{ github.ref_type != 'tag' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload artifacts (for manual workflow runs)
-      if: github.ref_type != 'tag'
-      uses: actions/upload-artifact@v4
-      with:
-        name: firmware-release-${{ steps.get_version.outputs.version }}
-        path: release-artifacts/
-        retention-days: 30
+

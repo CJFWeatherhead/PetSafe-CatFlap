@@ -47,6 +47,16 @@ GitHub Actions will automatically:
 
 **Check progress**: Go to [Actions tab](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions) → "Create Release" workflow
 
+## Manual Testing Releases
+
+You can also trigger the workflow manually for testing:
+
+1. Go to [Actions tab](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions)
+2. Select "Create Release" workflow
+3. Click "Run workflow" → Select branch → "Run workflow"
+
+This creates a **pre-release** with a timestamp-based version (e.g., `manual-20241213-151030`). Manual releases are marked as pre-releases to distinguish them from official tagged releases.
+
 ## Version Numbering
 
 Follow semantic versioning:
@@ -82,9 +92,10 @@ git push origin v1.0.1                     # Push again
 - Verify Docker and build.sh work correctly
 
 **Release not created?**
-- Verify tag format matches `v*.*.*` (e.g., v1.0.0)
-- Check workflow permissions in repository settings
-- Review workflow logs for errors
+- Check workflow permissions in repository settings (Settings → Actions → General → Workflow permissions should have write access)
+- Review workflow logs for errors in the [Actions tab](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions)
+- Ensure GITHUB_TOKEN has proper permissions
+- For tagged releases, verify tag format matches `v*.*.*` (e.g., v1.0.0)
 
 ## Complete Documentation
 

@@ -373,7 +373,7 @@ If your hardware revision has different LED/buzzer behavior:
 
 #### Option 1: Software Inversion (Quick Fix)
 
-Edit `peripherials.h` to invert logic:
+Edit `peripherals.h` to invert logic:
 
 ```c
 // For inverted LED logic (common anode or transistor inverted)

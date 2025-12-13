@@ -7,7 +7,7 @@
 ```
                         PIC16F886 (28-Pin DIP/SOIC)
                         Looking at chip from top
-                        Notch or dot marks Pin 1
+                        Notch or dot mark indicates Pin 1
                         
                               ╔═══╗
                          MCLR ║1 ●28║ RB7/ICSPDAT    (Green Button, ICSP Data)

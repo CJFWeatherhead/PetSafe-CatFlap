@@ -70,6 +70,9 @@
 //RFID field frequency
 #define RFID_FREQ 134200
 
+// ADC acquisition time as per PIC16F886 datasheet (20µs minimum)
+#define ADC_ACQUISITION_DELAY_US 20
+
 // Timer 1 is configured with a 1:4 scaler
 // Given the CLK freq of 19,600,000 Hz, Fosc/4 = 4,900,000Hz
 //(Fosc/4)/Prescaler = 1,225,000 Hz

@@ -82,7 +82,7 @@ jobs:
         # Create a checksum file
         cd "$RELEASE_DIR"
         sha256sum *.hex > checksums.txt
-        if [ -f *.elf ]; then
+        if ls *.elf 1> /dev/null 2>&1; then
           sha256sum *.elf >> checksums.txt
         fi
         cd ..

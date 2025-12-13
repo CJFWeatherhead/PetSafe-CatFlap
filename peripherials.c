@@ -61,8 +61,8 @@ uint16_t getLightSensor(void)
 {
     //Start ADC on channel 0
     ADCON0 = 0b10000001;
-    //Wait for capacitor to charge
-    __delay_us(1000);
+    //Wait for capacitor to charge (PIC16F886 datasheet requires 20µs minimum)
+    __delay_us(ADC_ACQUISITION_DELAY_US);
     ADCON0bits.GO_DONE = true;
     while(ADCON0bits.GO_DONE){}
     uint16_t ret = ADRESL;

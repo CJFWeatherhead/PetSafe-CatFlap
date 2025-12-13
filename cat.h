@@ -83,7 +83,7 @@ uint8_t saveCat(Cat* cat);
  * @param otherCrc Second CRC to be checked
  * @return 
  */
-bool catExists(Cat* cat, uint16_t* otherCrc);
+bool catExists(Cat* cat, const uint16_t* otherCrc);
 
 /**
  * Clear all cats in the EEPROM memory

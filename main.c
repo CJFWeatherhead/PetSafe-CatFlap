@@ -154,14 +154,13 @@ uint8_t handleButtons(ms_t *time){
  */
 void learnCat(void)
 {
-    uint8_t r = 0;
     uint16_t crcRead;    
     ms_t t = millis();
     ms_t now = 0;
     uint16_t i =0;
     Cat cat;
-    do{                
-        r = readRFID(&cat.id[0], 6, &cat.crc, &crcRead);
+    do{
+        uint8_t r = readRFID(&cat.id[0], 6, &cat.crc, &crcRead);
         if((r ==0) && (cat.crc == crcRead) && (crcRead != 0)){        
             uint8_t slot = saveCat(&cat);
             if(slot>0){
@@ -287,7 +286,7 @@ void handleSerial(){
  * Send cat ID by serial
  * @param c
  */
-void printCat(Cat* c)
+void printCat(const Cat* c)
 {
     putch('E');
     for(uint8_t i=0;i<6;++i){

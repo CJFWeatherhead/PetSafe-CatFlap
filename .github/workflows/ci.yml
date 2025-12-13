@@ -82,23 +82,25 @@ jobs:
         
     - name: Run cppcheck
       run: |
+        echo "Running static analysis with cppcheck..."
         cppcheck --enable=all --inconclusive --std=c99 \
           --suppress=missingIncludeSystem \
           --suppress=unusedFunction \
+          --error-exitcode=1 \
           --template='{file}:{line}: {severity}: {message}' \
-          --quiet \
-          *.c 2> cppcheck-report.txt
+          *.c 2>&1 | tee cppcheck-report.txt
         
-    - name: Display cppcheck results
-      if: always()
-      run: |
-        if [ -s cppcheck-report.txt ]; then
-          echo "=== Cppcheck Analysis Results ==="
+        # Check results
+        if grep -qE "(error|warning)" cppcheck-report.txt; then
+          echo ""
+          echo "=== Static Analysis Issues Found ==="
           cat cppcheck-report.txt
-          # Don't fail on warnings, just display them
-          echo "Analysis complete - review warnings above"
+          echo ""
+          echo "✗ Code quality issues detected"
+          echo "Please fix all errors and warnings before merging"
+          exit 1
         else
-          echo "No issues found by cppcheck"
+          echo "✓ No static analysis issues found!"
         fi
         
     - name: Upload analysis report
@@ -108,6 +110,40 @@ jobs:
         name: static-analysis-report
         path: cppcheck-report.txt
         retention-days: 30
+
+  # Summary job that requires all checks to pass
+  # This is the required status check for PR merging
+  ci-success:
+    name: All CI Checks Passed
+    runs-on: ubuntu-latest
+    needs: [build, static-analysis, test]
+    if: always()
+    
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Check all jobs status
+      run: |
+        echo "Checking status of all CI jobs..."
+        if [ "${{ needs.build.result }}" != "success" ]; then
+          echo "✗ Build job failed"
+          exit 1
+        fi
+        if [ "${{ needs.static-analysis.result }}" != "success" ]; then
+          echo "✗ Static analysis job failed"
+          exit 1
+        fi
+        if [ "${{ needs.test.result }}" != "success" ]; then
+          echo "✗ Test job failed"
+          exit 1
+        fi
+        echo "✓ All CI checks passed!"
+        echo ""
+        echo "Summary:"
+        echo "  - Build: ${{ needs.build.result }}"
+        echo "  - Static Analysis: ${{ needs.static-analysis.result }}"
+        echo "  - Tests: ${{ needs.test.result }}"
 
   test:
     name: Run Unit Tests
@@ -129,11 +165,21 @@ jobs:
         
     - name: Run tests
       run: |
-        if [ -d "test" ] && [ -f "project.yml" ]; then
-          ceedling test:all
+        echo "Running unit tests..."
+        ceedling test:all
+        echo "✓ All tests passed!"
+        
+    - name: Verify test count
+      run: |
+        echo "Verifying minimum test coverage..."
+        # Ensure we have at least 50 tests (current: 55)
+        # This prevents accidental removal of tests
+        if ceedling test:all 2>&1 | grep -q "TESTED:.*[5-9][0-9]\|TESTED:.*[1-9][0-9][0-9]"; then
+          echo "✓ Test count verification passed (minimum 50 tests)"
         else
-          echo "Test infrastructure not yet set up - skipping tests"
-          echo "Tests will be available after test suite is created"
+          echo "✗ ERROR: Test count below minimum threshold"
+          echo "Current tests must be maintained or increased"
+          exit 1
         fi
         
     - name: Upload test results

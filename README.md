@@ -84,12 +84,27 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 
 ## 📖 Documentation
 
+### Getting Started
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete guide to deploying firmware to PIC16F886 (highly recommended for first-time users!)
-- **[RELEASE.md](RELEASE.md)** - Complete guide to creating and downloading releases
-- **[QUICK_RELEASE_GUIDE.md](QUICK_RELEASE_GUIDE.md)** - Quick reference for creating releases (3 steps)
-- **[DOCKER_BUILD.md](DOCKER_BUILD.md)** - Docker-based build system documentation (troubleshooting, architecture, and advanced usage)
+- **[README.md](README.md)** - This file - project overview and quick start
+
+### Hardware and Debugging
+- **[HARDWARE_DEBUGGING_GUIDE.md](HARDWARE_DEBUGGING_GUIDE.md)** - Comprehensive debugging toolkit with pinouts, circuits, and troubleshooting (⭐ NEW!)
+- **[PINOUT_REFERENCE.md](PINOUT_REFERENCE.md)** - Quick reference card for PIC16F886 pinout and voltage measurements (⭐ NEW!)
+
+### Development
 - **[CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md)** - Detailed code architecture and module documentation
 - **[TESTING.md](TESTING.md)** - Testing guide including unit tests, CI/CD, and static analysis
+- **[DOCKER_BUILD.md](DOCKER_BUILD.md)** - Docker-based build system documentation (troubleshooting, architecture, and advanced usage)
+
+### Release Management
+- **[RELEASE.md](RELEASE.md)** - Complete guide to creating and downloading releases
+- **[QUICK_RELEASE_GUIDE.md](QUICK_RELEASE_GUIDE.md)** - Quick reference for creating releases (3 steps)
+
+### Migration and Changes
+- **[SERIAL_MIGRATION_GUIDE.md](SERIAL_MIGRATION_GUIDE.md)** - Guide for migrating from 38400 to 9600 baud UART
+
+### Contributing
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributing to this project
 - **[SECURITY.md](SECURITY.md)** - Security policy and reporting vulnerabilities
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Community guidelines
@@ -100,6 +115,22 @@ For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)** - a
 ### Standard Configuration
 
 The firmware was originally designed for the PetSafe Pet Porte 100-1023 **rev.X4 PCB**. If you have a different hardware revision, additional modifications may be required. No modifications are needed for basic functionality on rev.X4.
+
+### Hardware Revision Differences
+
+**⚠️ Important for Later Revisions (X5+):**
+
+If you have a later hardware revision, you may experience:
+- **LED polarity differences** - LEDs may be inverted (HIGH=OFF instead of HIGH=ON)
+- **Buzzer circuit changes** - Different buzzer type or drive requirements
+- **UART resistors** - Some revisions have 150Ω series resistors on TX/RX lines
+- **Component variations** - Different driver ICs or circuit configurations
+
+**📚 For detailed debugging and adaptation:**
+- See **[HARDWARE_DEBUGGING_GUIDE.md](HARDWARE_DEBUGGING_GUIDE.md)** for comprehensive pin tracing and circuit analysis
+- See **[PINOUT_REFERENCE.md](PINOUT_REFERENCE.md)** for quick pinout reference
+- Check existing [GitHub Issues](https://github.com/CJFWeatherhead/PetSafe-CatFlap/issues) for your revision
+- Share your findings to help others with the same hardware
 
 ## 🎮 Operating Modes
 

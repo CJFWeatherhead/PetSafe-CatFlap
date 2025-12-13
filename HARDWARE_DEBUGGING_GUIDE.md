@@ -153,7 +153,7 @@ TRISB = 0xC1;  // 0b11000001
 // TRISC (Tri-State Port C) - Direction
 TRISC = 0xC0;  // 0b11000000
 // Bits 0-5: 0 = Output (enables, PWM, buzzer, solenoids)
-// Bits 6-7: 1 = Input (UART - handled by peripheral)
+// Bits 6-7: 1 = Input (initially - UART peripheral overrides TX to output)
 
 // WPUB (Weak Pull-Up Port B)
 WPUB = 0xC1;   // 0b11000001

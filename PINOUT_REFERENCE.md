@@ -185,7 +185,9 @@ Bit  Pin  Name   Direction  Function                Pull-up  Special
 7    18   RC7    Input      UART RX                 No       USART
 
 Configuration Registers:
-  TRISC  = 0xC0  (0b11000000) - Bits 6,7 controlled by UART; others output
+  TRISC  = 0xC0  (0b11000000) - Bits 6,7 set as input initially
+                                 UART peripheral controls TX (makes it output)
+                                 All other bits (0-5) are outputs
 ```
 
 ---

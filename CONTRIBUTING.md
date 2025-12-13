@@ -370,30 +370,129 @@ Brief description of changes
 Fixes #(issue number)
 ```
 
+## Testing Requirements (MANDATORY)
+
+### ⚠️ All Pull Requests MUST Pass All Checks
+
+**NO EXCEPTIONS** - Pull requests cannot be merged unless ALL of the following pass:
+
+1. ✅ **Build with XC8 Compiler** - Firmware must compile without errors
+2. ✅ **Static Code Analysis** - Must pass cppcheck with zero errors/warnings
+3. ✅ **Unit Tests** - All tests must pass (currently 55 tests minimum)
+4. ✅ **CI Summary Check** - Combined status check must be green
+
+### Pre-Commit Checklist
+
+**BEFORE committing code, you MUST:**
+
+1. **Run linting locally**:
+   ```bash
+   ./lint.sh
+   ```
+   - Must show "No issues found" or justify any reported issues
+   - Fix all legitimate warnings before committing
+
+2. **Run all unit tests locally**:
+   ```bash
+   ceedling test:all
+   ```
+   - Must show "PASSED: XX FAILED: 0"
+   - If adding new features, add corresponding tests
+   - Maintain or increase the test count (currently 55)
+
+3. **Build successfully**:
+   ```bash
+   # In MPLAB X IDE: Clean and Build (Shift+F11)
+   # Or using Docker: ./build.sh
+   ```
+   - Must compile without errors
+   - Verify .hex file is generated
+
+### Test Coverage Standards
+
+All code changes must maintain or improve test coverage:
+
+- **Maintain existing tests**: Do not remove or reduce test count
+- **Add tests for new code**: New functionality requires new tests
+- **Test meaningful behavior**: No trivial "always pass" tests
+- **Test edge cases**: Boundary conditions, error paths, invalid inputs
+- **Test error handling**: Ensure errors are handled properly
+
+### Writing Good Tests
+
+**DO**:
+- Test actual behavior and logic
+- Test boundary conditions (0, max, overflow)
+- Test error conditions and invalid inputs
+- Use descriptive test names: `test_function_does_specific_thing`
+- Include comments explaining complex test scenarios
+
+**DON'T**:
+- Write tests that always pass (e.g., `TEST_ASSERT_TRUE(true)`)
+- Test implementation details (test behavior, not how it's implemented)
+- Copy-paste tests without understanding them
+- Skip edge case testing
+
+**Example Good Test**:
+```c
+/**
+ * Test: CRC correctly detects single bit corruption
+ */
+void test_crc_detects_single_bit_error(void)
+{
+    uint8_t validData[] = {0x12, 0x34, 0x56, 0x78};
+    uint8_t corruptData[] = {0x13, 0x34, 0x56, 0x78};  // Bit 0 flipped
+    
+    uint16_t validCrc = crc(validData, 4);
+    uint16_t corruptCrc = crc(corruptData, 4);
+    
+    // CRC must be different for corrupted data
+    TEST_ASSERT_NOT_EQUAL(validCrc, corruptCrc);
+}
+```
+
 ## Testing
 
 ### Automated Testing
 
-All contributions should pass automated tests:
+All contributions **MUST** pass automated tests:
 
 1. **Unit Tests**: Run `ceedling test:all`
    ```bash
-   # Install Ceedling
+   # Install Ceedling (first time only)
    sudo gem install ceedling
    
    # Run tests
    ceedling test:all
+   
+   # Should show: TESTED: XX PASSED: XX FAILED: 0
    ```
 
-2. **Static Analysis**: Code is automatically checked with cppcheck
+2. **Static Analysis**: Run `./lint.sh`
    ```bash
-   cppcheck --enable=all --std=c99 *.c
+   ./lint.sh
+   
+   # Should show: "No issues found!" or report specific issues
    ```
 
-3. **CI/CD Pipeline**: All pull requests trigger automated:
+3. **CI/CD Pipeline**: All pull requests automatically run:
    - Build with XC8 compiler
-   - Static code analysis
-   - Unit test execution
+   - Static code analysis (cppcheck)
+   - Unit test execution (55+ tests)
+   - Combined status check
+
+### CI/CD Status Checks
+
+The following checks run automatically on every PR:
+
+| Check | Purpose | Failure Action |
+|-------|---------|----------------|
+| **Build (XC8)** | Verifies firmware compiles for PIC16F886 | **PR BLOCKED** - Fix compilation errors |
+| **Static Analysis** | Checks code quality with cppcheck | **PR BLOCKED** - Fix all errors/warnings |
+| **Unit Tests** | Runs 55+ test cases | **PR BLOCKED** - Fix failing tests |
+| **CI Success** | Combines all checks | **PR BLOCKED** - All checks must pass |
+
+**All checks must be GREEN (✅) before PR can be merged.**
 
 See **[TESTING.md](TESTING.md)** for complete testing guide.
 

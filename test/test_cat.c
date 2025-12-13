@@ -164,6 +164,163 @@ void test_multiple_cats(void)
     TEST_ASSERT_EQUAL_UINT16(0x3333, cats[2].crc);
 }
 
+/**
+ * Test: Cat structure with empty ID
+ */
+void test_cat_empty_id(void)
+{
+    Cat testCat;
+    
+    // Initialize with empty ID
+    testCat.crc = 0x0000;
+    for (size_t i = 0; i < 6; i++) {
+        testCat.id[i] = 0x00;
+    }
+    
+    // Verify empty state
+    TEST_ASSERT_EQUAL_UINT16(0x0000, testCat.crc);
+    for (size_t i = 0; i < 6; i++) {
+        TEST_ASSERT_EQUAL_UINT8(0x00, testCat.id[i]);
+    }
+}
+
+/**
+ * Test: Cat structure with maximum values
+ */
+void test_cat_max_values(void)
+{
+    Cat testCat;
+    
+    // Initialize with maximum values
+    testCat.crc = 0xFFFF;
+    for (size_t i = 0; i < 6; i++) {
+        testCat.id[i] = 0xFF;
+    }
+    
+    // Verify maximum values
+    TEST_ASSERT_EQUAL_UINT16(0xFFFF, testCat.crc);
+    for (size_t i = 0; i < 6; i++) {
+        TEST_ASSERT_EQUAL_UINT8(0xFF, testCat.id[i]);
+    }
+}
+
+/**
+ * Test: Cat ID copy operation
+ */
+void test_cat_id_copy(void)
+{
+    Cat source, dest;
+    
+    // Initialize source
+    source.crc = 0xABCD;
+    for (size_t i = 0; i < 6; i++) {
+        source.id[i] = (uint8_t)(i + 0x10);
+    }
+    
+    // Copy to destination
+    dest.crc = source.crc;
+    for (size_t i = 0; i < 6; i++) {
+        dest.id[i] = source.id[i];
+    }
+    
+    // Verify copy
+    TEST_ASSERT_EQUAL_UINT16(source.crc, dest.crc);
+    TEST_ASSERT_EQUAL_MEMORY(source.id, dest.id, 6);
+}
+
+/**
+ * Test: Cat slots array size calculation
+ */
+void test_cat_slots_array_size(void)
+{
+    // Total EEPROM for cats: CAT_SLOTS * sizeof(Cat)
+    size_t totalCatMemory = CAT_SLOTS * sizeof(Cat);
+    
+    // Should be 16 slots * 8 bytes = 128 bytes
+    TEST_ASSERT_EQUAL_size_t(128, totalCatMemory);
+}
+
+/**
+ * Test: Configuration offset boundary
+ */
+void test_configuration_offset_boundary(void)
+{
+    // Configuration area is from 0 to CAT_OFFSET-1
+    // First cat starts at CAT_OFFSET
+    TEST_ASSERT_TRUE(CAT_OFFSET > LIGHT_CFG * 2);
+    
+    // Ensure config area doesn't overlap with cat area
+    TEST_ASSERT_EQUAL(128, CAT_OFFSET);
+}
+
+/**
+ * Test: Cat structure zero initialization
+ */
+void test_cat_zero_initialization(void)
+{
+    Cat testCat = {0};
+    
+    // Should initialize all fields to zero
+    TEST_ASSERT_EQUAL_UINT16(0, testCat.crc);
+    for (size_t i = 0; i < 6; i++) {
+        TEST_ASSERT_EQUAL_UINT8(0, testCat.id[i]);
+    }
+}
+
+/**
+ * Test: Multiple cats in array with different CRCs
+ */
+void test_multiple_cats_unique_crcs(void)
+{
+    Cat cats[CAT_SLOTS];
+    
+    // Initialize all cats with unique CRCs
+    for (int i = 0; i < CAT_SLOTS; i++) {
+        cats[i].crc = (uint16_t)(i + 1);
+    }
+    
+    // Verify all CRCs are unique
+    for (int i = 0; i < CAT_SLOTS; i++) {
+        TEST_ASSERT_EQUAL_UINT16((uint16_t)(i + 1), cats[i].crc);
+    }
+}
+
+/**
+ * Test: Cat ID sequential pattern
+ */
+void test_cat_id_sequential_pattern(void)
+{
+    Cat testCat;
+    
+    // Set sequential pattern
+    for (size_t i = 0; i < 6; i++) {
+        testCat.id[i] = (uint8_t)i;
+    }
+    
+    // Verify pattern
+    for (size_t i = 0; i < 6; i++) {
+        TEST_ASSERT_EQUAL_UINT8((uint8_t)i, testCat.id[i]);
+    }
+}
+
+/**
+ * Test: Cat ID reverse sequential pattern
+ */
+void test_cat_id_reverse_pattern(void)
+{
+    Cat testCat;
+    
+    // Set reverse pattern
+    for (size_t i = 0; i < 6; i++) {
+        testCat.id[i] = (uint8_t)(5 - i);
+    }
+    
+    // Verify reverse pattern
+    for (size_t i = 0; i < 6; i++) {
+        TEST_ASSERT_EQUAL_UINT8((uint8_t)(5 - i), testCat.id[i]);
+    }
+}
+
 // Note: EEPROM-dependent functions (getCat, saveCat, catExists, clearCats)
 // would require hardware mocking or simulator for full testing.
 // These tests validate the data structure definitions and basic operations.

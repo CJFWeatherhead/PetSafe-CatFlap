@@ -89,30 +89,166 @@ extern uint8_t TMR1L;
 extern uint8_t T2CON;
 extern uint8_t PR2;
 
-// Bit definitions
-#define RA0 0
-#define RA1 1
-#define RA2 2
-#define RA3 3
-#define RA4 4
-#define RA5 5
+// Interrupt registers
+extern uint8_t INTCON;
+extern uint8_t PIE1;
+extern uint8_t PIE2;
+extern uint8_t PIR1;
+extern uint8_t PIR2;
 
-#define RB0 0
-#define RB1 1
-#define RB2 2
-#define RB3 3
-#define RB4 4
-#define RB5 5
-#define RB6 6
-#define RB7 7
+// Additional registers
+extern uint8_t CCP2CON;
+extern uint8_t WPUB;
 
-#define RC0 0
-#define RC1 1
-#define RC2 2
-#define RC3 3
-#define RC4 4
-#define RC5 5
-#define RC6 6
-#define RC7 7
+// Bit-addressable structures for testing
+typedef struct {
+    unsigned nRBPU : 1;
+    unsigned INTEDG : 1;
+    unsigned T0CS : 1;
+    unsigned T0SE : 1;
+    unsigned PSA : 1;
+    unsigned PS0 : 1;
+    unsigned PS1 : 1;
+    unsigned PS2 : 1;
+} OPTION_REG_bits_t;
+extern OPTION_REG_bits_t OPTION_REGbits;
 
-#endif /* XC_MOCK_H */
+typedef struct {
+    unsigned TMR1ON : 1;
+    unsigned TMR1CS : 1;
+    unsigned T1SYNC : 1;
+    unsigned T1OSCEN : 1;
+    unsigned T1CKPS0 : 1;
+    unsigned T1CKPS1 : 1;
+    unsigned TMR1GE : 1;
+    unsigned T1GINV : 1;
+} T1CON_bits_t;
+extern T1CON_bits_t T1CONbits;
+
+typedef struct {
+    unsigned TMR1IF : 1;
+    unsigned TMR2IF : 1;
+    unsigned CCP1IF : 1;
+    unsigned SSPIF : 1;
+    unsigned TXIF : 1;
+    unsigned RCIF : 1;
+    unsigned ADIF : 1;
+    unsigned TMR1GIF : 1;
+} PIR1_bits_t;
+extern PIR1_bits_t PIR1bits;
+
+typedef struct {
+    unsigned TMR1IE : 1;
+    unsigned TMR2IE : 1;
+    unsigned CCP1IE : 1;
+    unsigned SSPIE : 1;
+    unsigned TXIE : 1;
+    unsigned RCIE : 1;
+    unsigned ADIE : 1;
+    unsigned TMR1GIE : 1;
+} PIE1_bits_t;
+extern PIE1_bits_t PIE1bits;
+
+typedef struct {
+    unsigned RBIF : 1;
+    unsigned INTF : 1;
+    unsigned T0IF : 1;
+    unsigned RBIE : 1;
+    unsigned INTE : 1;
+    unsigned T0IE : 1;
+    unsigned PEIE : 1;
+    unsigned GIE : 1;
+} INTCON_bits_t;
+extern INTCON_bits_t INTCONbits;
+
+typedef struct {
+    unsigned ADON : 1;
+    unsigned GO_DONE : 1;
+    unsigned CHS0 : 1;
+    unsigned CHS1 : 1;
+    unsigned CHS2 : 1;
+    unsigned CHS3 : 1;
+    unsigned VCFG0 : 1;
+    unsigned ADFM : 1;
+} ADCON0_bits_t;
+extern ADCON0_bits_t ADCON0bits;
+
+typedef struct {
+    unsigned CREN : 1;
+    unsigned SREN : 1;
+    unsigned FERR : 1;
+    unsigned OERR : 1;
+    unsigned : 1;
+    unsigned : 1;
+    unsigned RC9 : 1;
+    unsigned SPEN : 1;
+} RCSTA_bits_t;
+extern RCSTA_bits_t RCSTAbits;
+
+typedef struct {
+    unsigned TMR2ON : 1;
+    unsigned T2CKPS0 : 1;
+    unsigned T2CKPS1 : 1;
+    unsigned TOUTPS0 : 1;
+    unsigned TOUTPS1 : 1;
+    unsigned TOUTPS2 : 1;
+    unsigned TOUTPS3 : 1;
+    unsigned : 1;
+} T2CON_bits_t;
+extern T2CON_bits_t T2CONbits;
+
+typedef struct {
+    unsigned TRISC0 : 1;
+    unsigned TRISC1 : 1;
+    unsigned TRISC2 : 1;
+    unsigned TRISC3 : 1;
+    unsigned TRISC4 : 1;
+    unsigned TRISC5 : 1;
+    unsigned TRISC6 : 1;
+    unsigned TRISC7 : 1;
+} TRISC_bits_t;
+extern TRISC_bits_t TRISCbits;
+
+typedef struct {
+    unsigned RA0_bit : 1;
+    unsigned RA1 : 1;
+    unsigned RA2_bit : 1;
+    unsigned RA3 : 1;
+    unsigned RA4 : 1;
+    unsigned RA5 : 1;
+    unsigned RA6 : 1;
+    unsigned RA7 : 1;
+} PORTA_bits_t;
+extern PORTA_bits_t PORTAbits;
+
+typedef struct {
+    unsigned RB0_bit : 1;
+    unsigned RB1 : 1;
+    unsigned RB2 : 1;
+    unsigned RB3 : 1;
+    unsigned RB4 : 1;
+    unsigned RB5 : 1;
+    unsigned RB6 : 1;
+    unsigned RB7 : 1;
+} PORTB_bits_t;
+extern PORTB_bits_t PORTBbits;
+
+typedef struct {
+    unsigned RC0 : 1;
+    unsigned RC1 : 1;
+    unsigned RC2 : 1;
+    unsigned RC3 : 1;
+    unsigned RC4 : 1;
+    unsigned RC5 : 1;
+    unsigned RC6 : 1;
+    unsigned RC7 : 1;
+} PORTC_bits_t;
+extern PORTC_bits_t PORTCbits;
+
+// Mock ADC result for testing
+extern uint16_t mockADCResult;
+
+// Mock millisecond counter
+extern uint32_t mockMillis;
+
+#endif /* XC_HARDWARE_MOCK_H */

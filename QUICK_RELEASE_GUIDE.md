@@ -57,6 +57,8 @@ You can also trigger the workflow manually for testing:
 
 This creates a **pre-release** with a timestamp-based version (e.g., `manual-20241213-151030`). Manual releases are marked as pre-releases to distinguish them from official tagged releases.
 
+**Note:** This will create a lightweight git tag for the manual release.
+
 ## Version Numbering
 
 Follow semantic versioning:

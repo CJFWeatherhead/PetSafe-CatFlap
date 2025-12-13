@@ -189,6 +189,8 @@ You can trigger the release workflow manually without creating a tag:
 
 This will create a **pre-release** with a timestamp-based version (e.g., `manual-20241213-151030`) instead of a semantic version tag. Manual releases are marked as pre-releases to distinguish them from official tagged releases.
 
+**Important:** Manual workflow runs will create a lightweight git tag with the timestamp-based version. These tags are separate from semantic version tags (e.g., `v1.0.1`) used for official releases. You can filter them in the releases page by looking for the "Pre-release" badge.
+
 **Note:** Manual releases are useful for:
 - Testing the release workflow
 - Creating development builds

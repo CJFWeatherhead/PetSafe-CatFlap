@@ -196,16 +196,10 @@ uint16_t buildStatusBits(){
 }
 
 void printStatus(){
-    putch('A');
-    putch('M');
-    putch(opMode);
-    putch('L');
-    putShort(light);
-    putch('P');
-    putShort(0);
-    putch('S');
-    putShort(buildStatusBits());
-    putch('\n');
+    // Verbose human-readable status output
+    printf("STATUS: Mode=%u Light=%u Pos=%u Status=0x%04X InLocked=%u OutLocked=%u\r\n", 
+           (unsigned int)opMode, (unsigned int)light, (unsigned int)0, (unsigned int)buildStatusBits(), 
+           inLocked ? 1U : 0U, outLocked ? 1U : 0U);
 }
 
 /**
@@ -217,13 +211,18 @@ void handleSerial(){
     if(byteAvail()){
         uint8_t c = 0;
         if(getByte(&c) == 0){
+            // Echo the received character for debugging
+            printf("RX: '%c' (0x%02X)\r\n", (c >= 32 && c < 127) ? c : '.', c);
+            
             switch(c){
                 case 'S':
                     //Get status
+                    printf("CMD: Status request\r\n");
                     printStatus();
                     break;
                 case 'C':
                     //Change/read a configuration
+                    printf("CMD: Configuration\r\n");
                     //read/write?
                     if(getByte(&b) == 0){                
                         uint8_t index = 0;
@@ -234,12 +233,7 @@ void handleSerial(){
                                 uint16_t value = 0;
                                 if(getShort(&value) == 0){
                                     setConfiguration(index, value);
-                                    putch('A');
-                                    putch('C');
-                                    putch(index);
-                                    putch('V');
-                                    putShort(value);
-                                    putch('\n');
+                                    printf("CONFIG: Set index=%u value=%u\r\n", index, value);
                                     switch(index){
                                         case LIGHT_CFG:
                                             lightThd = value;
@@ -247,37 +241,43 @@ void handleSerial(){
                                         default:
                                             ;
                                     }
+                                }else{
+                                    printf("ERROR: Timeout reading value\r\n");
                                 }
                             }else{
                                 //Read the configuration
-                                putch('A');
-                                putch('C');
-                                putch(index);
-                                putch('V');
-                                putShort(getConfiguration(index));
-                                putch('\n');
+                                uint16_t configValue = getConfiguration(index);
+                                printf("CONFIG: Read index=%u value=%u\r\n", index, configValue);
                             }
                         }else{
-                            printf("AE\n");
+                            printf("ERROR: Timeout reading index\r\n");
                         }
+                    }else{
+                        printf("ERROR: Timeout reading R/S parameter\r\n");
                     }
                     break;
                 case 'M':
                     //Change mode
+                    printf("CMD: Mode change\r\n");
                     if(getByte(&b) == 0){
                         if(b<=MODE_OPEN){
                             switchMode(b);
-                            putch('A');
-                            putch('M');
-                            putch(opMode);
-                            putch('\n');            
+                            printf("MODE: Changed to %u\r\n", opMode);
+                        }else{
+                            printf("ERROR: Invalid mode %u (max=%u)\r\n", (unsigned int)b, (unsigned int)MODE_OPEN);
                         }
+                    }else{
+                        printf("ERROR: Timeout reading mode value\r\n");
                     }
                     break;
                 default:
                     //Not handled, ignore it
+                    printf("WARN: Unknown command '%c' (0x%02X)\r\n", 
+                           (c >= 32 && c < 127) ? c : '.', c);
                     return;
             }
+        }else{
+            printf("ERROR: Failed to read command byte\r\n");
         }
     }
 }
@@ -288,11 +288,9 @@ void handleSerial(){
  */
 void printCat(const Cat* c)
 {
-    putch('E');
-    for(uint8_t i=0;i<6;++i){
-        putch(c->id[i]);
-    }
-    putch('\n');
+    // Verbose human-readable cat detection output
+    printf("CAT_DETECTED: ID=%02X%02X%02X%02X%02X%02X CRC=0x%04X\r\n",
+           c->id[0], c->id[1], c->id[2], c->id[3], c->id[4], c->id[5], c->crc);
 }
 
 /******************************************************************************/

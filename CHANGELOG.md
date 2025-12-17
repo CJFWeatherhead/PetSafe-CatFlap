@@ -11,10 +11,22 @@ All notable changes to this project will be documented in this file.
 - SHA256 checksums for release artifacts
 - RELEASE.md documentation for release process
 - Pre-built firmware downloads via GitHub Releases
+- Serial echo functionality - received characters are echoed with hex display
+- Verbose debugging output for all serial commands and errors
 
 ### Changed
 - README.md updated with download instructions for pre-built firmware
 - Release artifacts now versioned with tag names (e.g., PetSafe-CatFlap-v1.0.0.hex)
+- **Serial protocol now uses human-readable text format instead of binary**:
+  - Status command ('S') now outputs: `STATUS: Mode=X Light=Y Pos=Z Status=0xXXXX InLocked=X OutLocked=X`
+  - Config commands now output: `CONFIG: Set/Read index=X value=Y`
+  - Mode commands now output: `MODE: Changed to X`
+  - Cat detection now outputs: `CAT_DETECTED: ID=XXXXXXXXXXXX CRC=0xXXXX`
+  - All received characters are echoed with format: `RX: 'X' (0xXX)`
+- Error messages are now descriptive instead of terse codes
+
+### Fixed
+- Serial communication now displays properly in terminals instead of garbled binary output
 
 ## [1.0.0] - Documentation Fork
 

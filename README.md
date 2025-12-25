@@ -11,7 +11,7 @@ An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing en
 
 ## 🐱 Features
 
-- **RFID Tag Authentication**: Learn up to multiple cat RFID tags
+- **RFID Tag Authentication**: Learn up to 16 cat RFID tags
 - **Multiple Operating Modes**:
   - Normal Mode: Standard RFID-controlled entrance
   - Vet Mode: Keep cats inside (entrance locked)
@@ -21,6 +21,11 @@ An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing en
   - Clear Mode: Remove all stored tags
 - **Light Sensor Integration**: Automatic operation based on ambient light
 - **Serial Communication**: External control and monitoring capability
+  - List all registered cats (IDs and CRCs)
+  - Add/delete cats manually via serial interface
+  - Read specific cat by slot number
+  - Real-time event notifications (door open/close, mode changes, cat detections)
+  - Human-readable verbose output with error handling
 - **LED Indicators**: Visual feedback for different modes
 - **Configurable Settings**: Adjustable thresholds and parameters
 

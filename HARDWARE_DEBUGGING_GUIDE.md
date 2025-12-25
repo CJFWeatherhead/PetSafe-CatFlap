@@ -1474,7 +1474,391 @@ Power: 0.1μF bypass capacitors on VDD
 
 ---
 
-**Document Version**: 1.0  
+## Probing for Extended Mode Hardware Features
+
+The firmware includes Extended Modes menu with placeholders for battery monitoring and Timer Mode. These features require specific hardware components that may or may not be present on your PCB revision. This section guides you through detecting and probing for this hardware.
+
+### Battery Monitoring Hardware (Extended Mode 6)
+
+**Required Components:**
+- Battery voltage sensing circuit (voltage divider or dedicated chip)
+- Battery connection terminals/connector
+- Optional: Low voltage detector IC (e.g., TL431, LM393)
+
+**Detection Method 1: Visual Inspection**
+
+1. **Look for battery compartment**:
+   - Check for a 9V battery snap connector
+   - Look for PCB markings: "BATT+", "BATT-", "9V", "BAT"
+   - Common location: Near edge of PCB, accessible from outside
+
+2. **Identify voltage sensing circuit**:
+   - Look for resistor divider network connected to an ADC pin
+   - Common configuration: 2 resistors (e.g., 10kΩ + 20kΩ) creating voltage divider
+   - Trace from battery positive terminal to PIC ADC pins (RA0, RA1, RA3, RA4)
+
+3. **Check for power switching**:
+   - Look for diodes (e.g., Schottky diode) for OR-ing mains and battery power
+   - Common marking: "D1", "D2" with cathode band visible
+   - P-channel MOSFET for automatic switching (e.g., SI2323DS)
+
+**Detection Method 2: Multimeter Testing**
+
+⚠️ **ALWAYS disconnect power before probing!**
+
+1. **Check for battery connector continuity**:
+   ```
+   Set DMM to continuity mode
+   Probe battery + terminal to VDD or diode anode
+   Probe battery - terminal to GND
+   Should have continuity when battery is present
+   ```
+
+2. **Measure voltage divider (with battery installed)**:
+   ```
+   Connect battery (9V alkaline)
+   Power off device
+   Measure voltage at:
+     - Battery terminals: Should be ~9V (fresh) to ~6V (depleted)
+     - Divider midpoint to GND: Should be 1.5-3V (safe for ADC)
+     - If >3.3V at midpoint, voltage divider ratio is wrong!
+   ```
+
+3. **Identify sensing pin**:
+   ```
+   Trace from voltage divider midpoint to PIC pin
+   Most likely candidates: RA1 (Pin 3), RA3 (Pin 5), RA4 (Pin 6)
+   RA0 is typically light sensor
+   RA2 is typically RFID signal
+   ```
+
+**Detection Method 3: Firmware Probing**
+
+If hardware exists, add test code to read ADC channel:
+
+```c
+// Add to main loop for testing
+ADCON0 = 0b10000101;  // Enable ADC on AN1 (RA1), for example
+__delay_us(20);       // Acquisition time
+ADCON0bits.GO_DONE = true;
+while(ADCON0bits.GO_DONE){}
+uint16_t batteryValue = ADRESL;
+batteryValue += (ADRESH<<8);
+printf("Battery ADC: %u\r\n", batteryValue);
+```
+
+**Expected Values** (with 9V battery through voltage divider):
+- Fresh battery (9V): ADC ~614 (if divided to 3V)
+- Good battery (7.5V): ADC ~512 (if divided to 2.5V)
+- Weak battery (6V): ADC ~410 (if divided to 2V)
+- If reading 0 or 1023: No voltage divider present
+
+**Schematic Example**:
+
+```
+     9V Battery
+        │
+        ├─────[Diode D1]──→ VDD (5V regulated)
+        │
+       [R1]
+      10kΩ
+        │
+        ├──→ To PIC ADC pin (RA1/RA3/RA4)
+        │
+       [R2]
+      20kΩ
+        │
+       GND
+
+Voltage at ADC = 9V × (R2 / (R1 + R2)) = 9V × (20k / 30k) = 6V
+⚠️ 6V exceeds PIC maximum (5V)! Need different ratio.
+
+Better ratio:
+R1 = 22kΩ, R2 = 10kΩ
+Voltage at ADC = 9V × (10k / 32k) = 2.8V ✓ Safe for PIC
+```
+
+**Adding Battery Monitoring Code**:
+
+If hardware is detected, update main.c:
+
+```c
+// Define battery ADC channel (change based on your hardware)
+#define BATTERY_ADC_CHANNEL 1  // AN1 = RA1
+
+// Add to global variables
+static uint16_t batteryVoltage = 0;
+
+// Add function to read battery
+uint16_t getBatteryVoltage(void) {
+    ADCON0 = 0b10000001 | (BATTERY_ADC_CHANNEL << 2);
+    __delay_us(20);
+    ADCON0bits.GO_DONE = true;
+    while(ADCON0bits.GO_DONE){}
+    uint16_t ret = ADRESL;
+    ret += (ADRESH<<8);
+    return ret;
+}
+
+// Add to main loop (read periodically)
+if((ms - lastBatteryRead) > 5000){
+    batteryVoltage = getBatteryVoltage();
+    lastBatteryRead = ms;
+    
+    // Check if battery is low (adjust threshold based on voltage divider)
+    if(batteryVoltage < 350){  // Adjust this threshold
+        // Indicate low battery (per manual: Red ON, Green FLASH)
+        // Implement low battery lock state configuration
+    }
+}
+```
+
+---
+
+### Timer Mode / RTC Hardware (Extended Mode 7)
+
+**Required Components:**
+- Real-time clock (RTC) chip with I2C or SPI interface
+- Crystal: 32.768 kHz (for RTC timekeeping)
+- Backup battery: CR2032 coin cell (for RTC power when main power off)
+- Pull-up resistors: 4.7kΩ on I2C lines (SCL, SDA)
+
+**Common RTC Chips:**
+- DS1307: I2C, very common, simple
+- DS3231: I2C, high-precision, temperature-compensated
+- PCF8523: I2C, low power
+- MCP7940N: I2C, Microchip, good documentation
+
+**Detection Method 1: Visual Inspection**
+
+1. **Look for RTC IC**:
+   - 8-pin DIP or SOIC package
+   - Markings: "DS1307", "DS3231", "PCF8523", "MCP7940N"
+   - Usually near a small cylindrical crystal (32.768 kHz)
+   - Often has coin cell battery holder nearby
+
+2. **Identify 32.768 kHz crystal**:
+   - Small cylindrical component (~3mm diameter, 8mm long)
+   - Or small SMD package (3.2mm × 1.5mm)
+   - Marking: "32.768" or "32768"
+   - Connected to RTC chip pins (usually X1, X2)
+
+3. **Check for I2C connections**:
+   - Trace from RTC chip pins to PIC pins
+   - PIC16F886 I2C pins: RC3 (SCL), RC4 (SDA)
+   - ⚠️ RC3/RC4 currently used for solenoid control!
+   - If RTC exists, likely uses bit-banged I2C on different pins
+   - Alternative pins: RA1, RA4, or any GPIO
+
+4. **Look for backup battery**:
+   - CR2032 coin cell holder
+   - Connected to RTC VBAT pin
+   - Keeps RTC running when main power is off
+
+**Detection Method 2: Multimeter Testing**
+
+⚠️ **ALWAYS disconnect power before probing!**
+
+1. **Check for 32.768 kHz crystal**:
+   ```
+   Set DMM to continuity
+   Probe crystal terminals
+   Should show high impedance (>1MΩ) or open circuit
+   If shorted (0Ω), crystal may be damaged
+   ```
+
+2. **Check RTC power**:
+   ```
+   With power ON:
+   Measure voltage at RTC VCC pin: Should be 5V
+   Measure voltage at RTC VBAT pin: Should be ~3V (coin cell)
+   
+   With power OFF (if backup battery present):
+   Measure voltage at RTC VBAT pin: Should be ~3V
+   RTC should continue running on backup power
+   ```
+
+3. **Identify I2C lines**:
+   ```
+   Trace from RTC SCL/SDA pins to PIC
+   Use continuity to find which PIC pins connect
+   Common: RB0/RB1, RA1/RA4, or software I2C on any GPIO
+   ```
+
+**Detection Method 3: I2C Scanning**
+
+If RTC hardware exists, add I2C scanning code:
+
+```c
+// Bit-bang I2C example (adapt to your pin connections)
+#define I2C_SCL_PIN RA1bits.RA1
+#define I2C_SDA_PIN RA4bits.RA4
+#define I2C_SCL_TRIS TRISAbits.TRISA1
+#define I2C_SDA_TRIS TRISAbits.TRISA4
+
+// Common RTC I2C addresses
+#define DS1307_ADDR 0x68
+#define DS3231_ADDR 0x68
+#define PCF8523_ADDR 0x68
+#define MCP7940N_ADDR 0x6F
+
+// Scan for I2C devices on bus
+void i2c_scan(void) {
+    for(uint8_t addr = 0x08; addr < 0x78; addr++) {
+        // Send I2C start + address + read bit
+        // If ACK received, device exists at this address
+        printf("Scanning 0x%02X: ", addr);
+        if(i2c_probe(addr)) {
+            printf("FOUND\r\n");
+        } else {
+            printf("---\r\n");
+        }
+    }
+}
+```
+
+**Expected Results**:
+- If DS1307/DS3231/PCF8523 found: Address 0x68
+- If MCP7940N found: Address 0x6F
+- If no response: RTC not present or wrong pins
+
+**Adding Timer Mode Code**:
+
+If RTC hardware is detected, implement time tracking:
+
+```c
+// Define I2C pins (change based on your hardware)
+#define RTC_I2C_SCL_PIN PORTAbits.RA1
+#define RTC_I2C_SDA_PIN PORTAbits.RA4
+
+// RTC time structure
+typedef struct {
+    uint8_t second;  // 0-59
+    uint8_t minute;  // 0-59
+    uint8_t hour;    // 0-23
+    uint8_t day;     // 1-31
+    uint8_t month;   // 1-12
+    uint8_t year;    // 0-99 (20xx)
+} RTCTime;
+
+// Timer mode settings (stored in EEPROM)
+typedef struct {
+    uint8_t lockHour;    // Hour to lock (0-23)
+    uint8_t lockMinute;  // Minute to lock (0-59)
+    uint8_t unlockHour;  // Hour to unlock (0-23)
+    uint8_t unlockMinute;// Minute to unlock (0-59)
+    bool enabled;        // Timer mode active
+} TimerSettings;
+
+// Example: Check if current time matches lock/unlock time
+void checkTimerMode(RTCTime* current, TimerSettings* settings) {
+    if(!settings->enabled) return;
+    
+    // Check unlock time
+    if(current->hour == settings->unlockHour && 
+       current->minute == settings->unlockMinute) {
+        // Unlock the flap
+        outLocked = lockRedLatch(false);
+    }
+    
+    // Check lock time
+    if(current->hour == settings->lockHour && 
+       current->minute == settings->lockMinute) {
+        // Lock the flap
+        outLocked = lockRedLatch(true);
+    }
+}
+```
+
+**RTC Library Functions Needed**:
+- `rtc_init()`: Initialize I2C and configure RTC
+- `rtc_read_time(RTCTime* time)`: Read current time from RTC
+- `rtc_set_time(RTCTime* time)`: Set RTC time
+- `i2c_start()`, `i2c_stop()`: I2C protocol implementation
+- `i2c_write(uint8_t data)`: Write byte to I2C
+- `i2c_read(bool ack)`: Read byte from I2C
+
+**Implementation Notes**:
+- Manual states Timer Mode only works with mains power (not battery)
+- Times reset on power loss (unless RTC has backup battery)
+- Timer Mode supersedes light sensor in Night Mode
+- Need UI to set times (via serial or button sequences)
+
+---
+
+### Power Source Detection
+
+To distinguish between mains power and battery backup:
+
+**Method 1: Voltage Monitoring**
+```c
+// If mains power present, voltage should be stable 5.0V
+// If battery backup, voltage will be 6-9V (before regulation)
+// Measure on unregulated side if accessible
+```
+
+**Method 2: Dedicated GPIO Pin**
+```c
+// Some designs use a GPIO to detect power source
+// Look for trace from power supply to GPIO pin
+// HIGH = mains power, LOW = battery backup (or vice versa)
+#define MAINS_DETECT_PIN PORTAbits.RA4  // Example
+bool isMainsPower = MAINS_DETECT_PIN;
+```
+
+**Method 3: Current Sensing**
+```c
+// Battery backup typically disables high-current features
+// Check if Night Mode sensor power is disabled on battery
+// Check if RFID continuous mode is disabled
+```
+
+---
+
+### Hardware Modification Safety
+
+If you plan to add missing hardware (battery monitoring or RTC):
+
+⚠️ **Safety Warnings**:
+1. **Disconnect ALL power** (mains and battery) before modifications
+2. **Verify PCB traces** - ensure no shorts after soldering
+3. **Test on bench** before reinstalling in cat flap
+4. **Use proper voltage levels** - PIC pins are 5V max
+5. **Add protection** - series resistors, bypass capacitors
+6. **Document changes** - take photos, save schematics
+
+**Recommended Approach**:
+1. Start with breadboard prototype
+2. Test firmware with development hardware
+3. Transfer to PCB only after verified working
+4. Add sockets for easy IC replacement
+5. Keep original firmware backup for recovery
+
+---
+
+### Testing Extended Mode Hardware
+
+**Battery Monitoring Test Procedure**:
+1. Install battery, measure voltage at sensing pin
+2. Add printf debug to display ADC values
+3. Discharge battery gradually, verify ADC changes
+4. Implement low battery threshold detection
+5. Test low battery lock state configuration
+6. Verify LED indicator (Red ON, Green FLASH)
+
+**Timer Mode Test Procedure**:
+1. Scan I2C bus to detect RTC
+2. Set known time on RTC (e.g., 12:00)
+3. Wait 1 minute, read time, verify 12:01
+4. Set lock time to 2 minutes from now
+5. Verify flap locks automatically at set time
+6. Set unlock time, verify flap unlocks
+7. Test across midnight boundary
+8. Remove power, verify time persists (if backup battery)
+
+---
+
+**Document Version**: 1.1  
 **Last Updated**: December 2024  
 **Maintainer**: Community (documentation fork)  
 **Original Hardware**: Revision X4  

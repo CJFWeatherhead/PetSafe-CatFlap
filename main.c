@@ -475,8 +475,37 @@ void main(void)
     /* Initialize I/O and Peripherals for application */
     InitApp();
     
+    // Startup sequence: visual and audio feedback to confirm boot
+    // LED: Both LEDs solid for 1 second, then 2 alternating flashes (Green, Red, Green, Red)
+    RED_LED = 1;
+    GREEN_LED = 1;
+    __delay_ms(1000);
+    RED_LED = 0;
+    GREEN_LED = 0;
+    __delay_ms(100);
+    
+    // Two alternating flashes: Green, Red, Green, Red (200ms each)
+    for(uint8_t i=0; i<2; ++i){
+        GREEN_LED = 1;
+        __delay_ms(200);
+        GREEN_LED = 0;
+        __delay_ms(50);
+        RED_LED = 1;
+        __delay_ms(200);
+        RED_LED = 0;
+        __delay_ms(50);
+    }
+    
+    // Startup beep sequence: two short, one long
+    beepShort();
+    __delay_ms(150);
+    beepShort();
+    __delay_ms(150);
+    beepLong();
+    
     // Check if any cats are programmed - flash both LEDs if not (per manual page 18)
     if(!anyCatsProgrammed()){
+        __delay_ms(500);
         for(uint8_t i=0; i<10; ++i){
             RED_LED = 1;
             GREEN_LED = 1;

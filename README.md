@@ -137,18 +137,49 @@ If you have a later hardware revision, you may experience:
 | Mode | LED Indicators | Description |
 |------|----------------|-------------|
 | **Normal** | Off | Standard operation - entrance locked, exit open |
-| **Vet** | Red blinking | Both locked - keep cat inside |
+| **Vet** | Red off, Green blinking | Both locked - keep cat inside (entrance only) |
 | **Night** | Red solid + Green status | Auto-lock based on light sensor |
 | **Learn** | Green blinking | Add new RFID tags (hold green button 10s) |
 | **Clear** | Both blinking | Remove all tags (hold both buttons 30s) |
-| **Open** | Both solid | Free access - all unlocked |
+| **Open** | Red blinking | Free access - all unlocked (via Extended Menu) |
 
 ### Button Controls
 
-- **Red button short press**: Toggle night mode
+#### Basic Controls
+- **Red button short press (<2s)**: Toggle night mode
 - **Red button long press (>5s)**: Toggle vet mode  
 - **Green button long press (>10s)**: Enter learn mode
-- **Both buttons (>30s)**: Clear all stored RFID tags
+- **Both buttons long press (>30s)**: Clear all stored RFID tags
+
+#### Extended Features
+- **Red button very long press (>30s)**: Toggle key pad lock (prevents accidental mode changes)
+- **Green button very long press (>30s)**: Reset to normal mode
+- **Both buttons press (>2s)**: Enter Extended Modes menu
+
+### Extended Modes Menu
+
+The firmware now includes a comprehensive Extended Modes menu system (per official manual). 
+
+**To Enter**: Press and hold both Red and Green buttons for more than 2 seconds. You'll hear a long beep and the Green LED will turn on.
+
+**To Navigate**: 
+- Press Red button to move up through modes
+- Press Green button to move down through modes  
+- The number of beeps indicates which mode you're in (1-7 beeps)
+
+**To Activate**: Press both buttons simultaneously
+
+#### Extended Mode Options
+
+1. **Exit Mode (1 beep)**: Cancel and return to normal operation
+2. **Open Mode (2 beeps)**: Enter free access mode (no RFID checking)
+3. **Silent Mode (3 beeps)**: Toggle cat detection beeps on/off
+4. **Set Light Level (4 beeps)**: Store current light level as Night Mode threshold
+5. **Lock Return Time (5 beeps)**: Adjust how long door stays open (1-25 seconds, default 4s)
+6. **Low Battery Lock State (6 beeps)**: Configure lock behavior on low battery (placeholder)
+7. **Timer Mode (7 beeps)**: Set specific lock/unlock times (placeholder - requires RTC)
+
+**Note**: Modes 6 and 7 have menu entries but require additional hardware (battery monitoring and real-time clock) for full functionality.
 
 ## 🔌 Serial Communication
 

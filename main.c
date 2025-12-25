@@ -47,6 +47,12 @@
 #define CMD_STATE_MODE 2 
 #define CMD_STATE_SETTING 3
 
+// Forward declarations for serial command handlers
+void listCats(void);
+void addCatSerial(void);
+void deleteCatSerial(void);
+void readCatSerial(void);
+
 //Operation mode
 static uint8_t opMode = MODE_NORMAL;    
 //Is the out locked?
@@ -62,7 +68,10 @@ static uint16_t lightThd = 0;
  * Switch flap operating mode
  * @param mode
  */
-void switchMode(uint8_t mode){    
+void switchMode(uint8_t mode){
+    uint8_t prevMode = opMode;
+    const char* modeNames[] = {"NORMAL", "VET", "CLOSED", "NIGHT", "LEARN", "CLEAR", "OPEN"};
+    
     switch(mode){
         case MODE_NIGHT:
         case MODE_NORMAL:
@@ -91,6 +100,13 @@ void switchMode(uint8_t mode){
             break;
     }
     opMode = mode;
+    
+    // Echo mode change to UART if mode actually changed
+    if(prevMode != opMode){
+        printf("MODE_CHANGE: %s -> %s (code: %u -> %u)\r\n", 
+               modeNames[prevMode], modeNames[opMode],
+               (unsigned int)prevMode, (unsigned int)opMode);
+    }
 }
 
 /**
@@ -270,6 +286,22 @@ void handleSerial(){
                         printf("ERROR: Timeout reading mode value\r\n");
                     }
                     break;
+                case 'L':
+                    //List all cats
+                    listCats();
+                    break;
+                case 'A':
+                    //Add a cat manually
+                    addCatSerial();
+                    break;
+                case 'D':
+                    //Delete a cat by slot
+                    deleteCatSerial();
+                    break;
+                case 'R':
+                    //Read a specific cat by slot
+                    readCatSerial();
+                    break;
                 default:
                     //Not handled, ignore it
                     printf("WARN: Unknown command '%c' (0x%02X)\r\n", 
@@ -291,6 +323,153 @@ void printCat(const Cat* c)
     // Verbose human-readable cat detection output
     printf("CAT_DETECTED: ID=%02X%02X%02X%02X%02X%02X CRC=0x%04X\r\n",
            c->id[0], c->id[1], c->id[2], c->id[3], c->id[4], c->id[5], c->crc);
+}
+
+/**
+ * List all cats stored in EEPROM
+ */
+void listCats(void)
+{
+    printf("CMD: List cats\r\n");
+    printf("Registered cats in EEPROM:\r\n");
+    
+    uint8_t count = 0;
+    for(uint8_t i = 0; i < CAT_SLOTS; i++){
+        Cat cat;
+        getCat(&cat, i);
+        if(cat.crc != 0){
+            printf("  Slot %u: ID=%02X%02X%02X%02X%02X%02X CRC=0x%04X\r\n", 
+                   (unsigned int)(i + 1),
+                   cat.id[0], cat.id[1], cat.id[2], 
+                   cat.id[3], cat.id[4], cat.id[5], 
+                   (unsigned int)cat.crc);
+            count++;
+        }
+    }
+    printf("Total: %u cat(s) registered (max %u)\r\n", (unsigned int)count, (unsigned int)CAT_SLOTS);
+}
+
+/**
+ * Add a cat manually via serial
+ */
+void addCatSerial(void)
+{
+    printf("CMD: Add cat\r\n");
+    Cat cat;
+    uint8_t b;
+    
+    // Read 6 bytes for ID
+    printf("Reading cat ID (6 bytes)...\r\n");
+    for(uint8_t i = 0; i < 6; i++){
+        if(getByte(&b) == 0){
+            cat.id[i] = b;
+        }else{
+            printf("ERROR: Timeout reading ID byte %u\r\n", (unsigned int)i);
+            return;
+        }
+    }
+    
+    // Read 2 bytes for CRC (little-endian)
+    uint16_t crc = 0;
+    if(getShort(&crc) == 0){
+        cat.crc = crc;
+    }else{
+        printf("ERROR: Timeout reading CRC\r\n");
+        return;
+    }
+    
+    // Validate CRC is not zero
+    if(cat.crc == 0){
+        printf("ERROR: Invalid CRC (0x0000)\r\n");
+        return;
+    }
+    
+    // Save the cat
+    uint8_t slot = saveCat(&cat);
+    if(slot > 0){
+        printf("SUCCESS: Cat saved to slot %u\r\n", (unsigned int)slot);
+        printf("  ID=%02X%02X%02X%02X%02X%02X CRC=0x%04X\r\n",
+               cat.id[0], cat.id[1], cat.id[2], 
+               cat.id[3], cat.id[4], cat.id[5], 
+               (unsigned int)cat.crc);
+    }else{
+        printf("ERROR: Failed to save cat (EEPROM full or already exists)\r\n");
+    }
+}
+
+/**
+ * Delete a cat by slot number
+ */
+void deleteCatSerial(void)
+{
+    printf("CMD: Delete cat\r\n");
+    uint8_t slot;
+    
+    if(getByte(&slot) == 0){
+        // Slot numbers are 1-based for user friendliness
+        if(slot < 1 || slot > CAT_SLOTS){
+            printf("ERROR: Invalid slot %u (valid range: 1-%u)\r\n", 
+                   (unsigned int)slot, (unsigned int)CAT_SLOTS);
+            return;
+        }
+        
+        // Check if slot has a cat
+        Cat cat;
+        getCat(&cat, slot - 1);
+        if(cat.crc == 0){
+            printf("ERROR: Slot %u is already empty\r\n", (unsigned int)slot);
+            return;
+        }
+        
+        // Clear the slot by setting CRC to 0
+        uint8_t offset = CAT_OFFSET + (slot - 1) * sizeof(Cat);
+        if(eeprom_read(offset) != 0x0){
+            eeprom_write(offset, 0x0);
+        }
+        if(eeprom_read(offset + 1) != 0x0){
+            eeprom_write(offset + 1, 0x0);
+        }
+        
+        printf("SUCCESS: Deleted cat from slot %u\r\n", (unsigned int)slot);
+        printf("  ID was: %02X%02X%02X%02X%02X%02X CRC was: 0x%04X\r\n",
+               cat.id[0], cat.id[1], cat.id[2], 
+               cat.id[3], cat.id[4], cat.id[5], 
+               (unsigned int)cat.crc);
+    }else{
+        printf("ERROR: Timeout reading slot number\r\n");
+    }
+}
+
+/**
+ * Read a specific cat by slot number
+ */
+void readCatSerial(void)
+{
+    printf("CMD: Read cat\r\n");
+    uint8_t slot;
+    
+    if(getByte(&slot) == 0){
+        // Slot numbers are 1-based for user friendliness
+        if(slot < 1 || slot > CAT_SLOTS){
+            printf("ERROR: Invalid slot %u (valid range: 1-%u)\r\n", 
+                   (unsigned int)slot, (unsigned int)CAT_SLOTS);
+            return;
+        }
+        
+        Cat cat;
+        getCat(&cat, slot - 1);
+        if(cat.crc == 0){
+            printf("Slot %u: Empty\r\n", (unsigned int)slot);
+        }else{
+            printf("Slot %u: ID=%02X%02X%02X%02X%02X%02X CRC=0x%04X\r\n",
+                   (unsigned int)slot,
+                   cat.id[0], cat.id[1], cat.id[2], 
+                   cat.id[3], cat.id[4], cat.id[5], 
+                   (unsigned int)cat.crc);
+        }
+    }else{
+        printf("ERROR: Timeout reading slot number\r\n");
+    }
 }
 
 /******************************************************************************/
@@ -378,9 +557,11 @@ void main(void)
                 //Read ok and found in EEPROM
                 beep();
                 inLocked = lockGreenLatch(false);
+                printf("DOOR_OPEN: Cat flap unlocked for entry (timeout: %u ms)\r\n", (unsigned int)OPEN_TIME);
                 printCat(&c);
                 __delay_ms(OPEN_TIME);
-                inLocked = lockGreenLatch(true);                
+                inLocked = lockGreenLatch(true);
+                printf("DOOR_CLOSE: Cat flap locked after timeout\r\n");
             }
             c.crc = 0x0;
             //Relax

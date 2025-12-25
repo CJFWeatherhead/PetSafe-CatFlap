@@ -90,6 +90,12 @@ bool catExists(Cat* cat, const uint16_t* otherCrc);
  */
 void clearCats(void);
 
+/**
+ * Check if any cats are programmed
+ * @return true if at least one cat is programmed, false otherwise
+ */
+bool anyCatsProgrammed(void);
+
 #endif	/* XC_HEADER_TEMPLATE_H */
 
 

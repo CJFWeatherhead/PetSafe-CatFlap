@@ -141,3 +141,21 @@ void clearCats(void)
         __delay_ms(100);
     }
 }
+
+/**
+ * Check if any cats are programmed
+ * @return true if at least one cat is programmed, false otherwise
+ */
+bool anyCatsProgrammed(void)
+{
+    uint8_t offset = CAT_OFFSET;
+    for(uint8_t i=0;i<CAT_SLOTS;++i){
+        uint16_t tCrc = eeprom_read(offset);
+        tCrc |= (eeprom_read(offset+1) << 8);
+        if(tCrc != 0x0){
+            return true; // Found at least one programmed cat
+        }
+        offset += sizeof(Cat);
+    }
+    return false; // No cats programmed
+}

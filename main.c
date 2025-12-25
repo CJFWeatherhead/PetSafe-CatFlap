@@ -12,9 +12,9 @@
 #include "cat.h"
 
 /**
- * time to keep door open
+ * time to keep door open (default 4 seconds per manual)
  */
-#define OPEN_TIME 5000
+#define OPEN_TIME 4000
 
 /**
  * Number of milliseconds
@@ -304,6 +304,19 @@ void main(void)
     ms_t btnPress = 0;    
     /* Initialize I/O and Peripherals for application */
     InitApp();
+    
+    // Check if any cats are programmed - flash both LEDs if not (per manual page 18)
+    if(!anyCatsProgrammed()){
+        for(uint8_t i=0; i<10; ++i){
+            RED_LED = 1;
+            GREEN_LED = 1;
+            __delay_ms(250);
+            RED_LED = 0;
+            GREEN_LED = 0;
+            __delay_ms(250);
+        }
+    }
+    
     lightThd = getConfiguration(LIGHT_CFG);    
     // Initialize EEPROM if unprogrammed or invalid (0xFFFF=unprogrammed, >1023=out of range)
     if(lightThd > 1023){
@@ -327,9 +340,9 @@ void main(void)
                 GREEN_LED = 0;
                 break;
             case MODE_VET:
-                GREEN_LED = 0;
-                //Blink red led
-                RED_LED = ((ms>>9) & 0x1);
+                RED_LED = 0;
+                //Blink green led (per manual page 18: Off, Flash)
+                GREEN_LED = ((ms>>9) & 0x1);
                 doOpen = true;
                 break;
             case MODE_CLOSED:
@@ -347,8 +360,9 @@ void main(void)
                 switchMode(MODE_NORMAL);
                 break;
             case MODE_OPEN:
-                RED_LED = 1;
-                GREEN_LED = 1;
+                //Blink red led only (per manual page 18: Flash, Off)
+                RED_LED = ((ms>>9) & 0x1);
+                GREEN_LED = 0;
                 doOpen = false;
                 break;
             case MODE_NIGHT:
@@ -396,16 +410,22 @@ void main(void)
                 break;
             case RED_PRESS :
                 if(btnPress>5000){
+                    // Toggle Vet mode (per manual: long press >5s)
                     if(opMode == MODE_VET){
                         switchMode(MODE_NORMAL);
+                        beepShort(); // Beep on exit
                     }else{
                         switchMode(MODE_VET);
+                        beepShort(); // Beep on entry
                     }
                 }else if(btnPress<2000){
+                    // Toggle Night mode (per manual: press <2s)
                     if(opMode == MODE_NIGHT){
                         switchMode(MODE_NORMAL);
+                        beepShort(); // Beep on exit
                     }else{
-                        switchMode(MODE_NIGHT);                        
+                        switchMode(MODE_NIGHT);
+                        beepShort(); // Beep on entry
                     }
                 }
                 break;

@@ -1,8 +1,8 @@
 # PIC16F886 Deployment Guide for PetSafe Cat Flap Firmware
 
-This comprehensive guide will walk you through deploying the alternative firmware to your PetSafe Pet Porte 100-1023 PCB. This guide assumes no prior experience with embedded systems or PIC microcontroller programming.
+This comprehensive guide will walk you through deploying the enhanced alternative firmware to your PetSafe Pet Porte 100-1023 PCB. This guide assumes no prior experience with embedded systems or PIC microcontroller programming.
 
-> **⚠️ Important Notice**: This firmware was originally tested by the original developer on **revision X4 hardware only**. This documentation fork has **not been tested** on any hardware. Different PCB revisions may require modifications. Always test thoroughly and maintain a backup of your original firmware.
+> **⚠️ Important Notice**: This firmware was originally tested by the original developer on **revision X4 hardware only**. This enhanced fork adds significant manual compliance features but has **not been tested** on physical hardware. Different PCB revisions may require modifications. Always test thoroughly, maintain a backup of your original firmware, and provide alternative pet access during testing.
 
 ## Table of Contents
 

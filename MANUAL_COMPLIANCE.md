@@ -57,13 +57,22 @@ This document tracks the firmware's compliance with the official PetSafe Petport
 - Entrance allowed, exit locked
 
 ### ✅ Program Entry (Learn Mode)
-**Manual Specification**: Hold Green Button > 10 seconds, green light flashes, 30 second window
+**Manual Specification**: Hold Green Button > 10 seconds, green light flashes, 30 second window, three beeps on success
 **Implementation Status**: ✅ Compliant
 - Activated by Green button > 10s
 - Green LED flashes during learning window
 - 30 second timeout
-- Beeps when cat successfully programmed
+- **Three beeps when cat successfully programmed** (per manual page 7)
 - Automatically returns to Normal Mode after learning or timeout
+
+**Note**: Manual states "up to 25 cats" can be programmed. Current implementation supports **16 cats** due to EEPROM size constraints:
+- Available EEPROM: 256 bytes
+- Configuration space: 128 bytes (reserved for settings)
+- Cat storage space: 128 bytes
+- Each cat: 8 bytes (2-byte CRC + 6-byte ID)
+- Maximum cats: 128 / 8 = **16 cats**
+
+To support 25 cats would require 25 × 8 = 200 bytes, leaving only 56 bytes for configuration. The 16-cat limit is a hardware constraint given the need to preserve configuration space. This is documented as a known limitation.
 
 ### ✅ Erase Mode
 **Manual Specification**: Both buttons > 30 seconds, series of beeps + long beep, both LEDs flash
@@ -343,6 +352,33 @@ This document tracks the firmware's compliance with the official PetSafe Petport
    - Need to maintain time-of-day across operation
    - Manual states feature only works with external power supply
    - Significant hardware and software changes required
+
+### Cat Capacity Limitation
+
+**Manual Specification**: "Your Petporte smart flap® can be programmed with up to 25 cats" (Manual page 7)
+
+**Current Implementation**: Maximum **16 cats** supported
+
+**Reason**: EEPROM memory constraint
+- Total EEPROM: 256 bytes
+- Configuration space: 128 bytes (for settings, thresholds, etc.)
+- Cat storage space: 128 bytes remaining
+- Each cat entry: 8 bytes (2-byte CRC + 6-byte ID)
+- Maximum capacity: 128 bytes ÷ 8 bytes/cat = **16 cats**
+
+**Why Not 25 Cats?**:
+- 25 cats would require: 25 × 8 = 200 bytes
+- Would leave only: 256 - 200 = 56 bytes for configuration
+- Insufficient space for current and future configuration needs
+- Configuration space includes: light threshold, lock return time, silent mode flag, and other settings
+
+**Mitigation**:
+- 16 cats should be sufficient for most households
+- Commercial installations needing >16 cats should use original firmware
+- EEPROM allocation could be adjusted if configuration needs are reduced
+- Alternative: Use external EEPROM (requires hardware modification)
+
+This limitation is documented in README.md and is a known constraint given the hardware memory availability.
 
 ### Design Decisions
 

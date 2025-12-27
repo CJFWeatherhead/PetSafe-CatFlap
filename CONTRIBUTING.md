@@ -2,32 +2,36 @@
 
 Thank you for your interest in this project!
 
-## Important: Project Scope and Maintenance
+## Project Scope and Maintenance
 
-**This is a documentation-focused fork** of the original project. Please understand:
+This project provides **enhanced alternative firmware** for the PetSafe Pet Porte 100-1023 cat flap, with significant improvements for manual compliance and additional features. Please understand:
 
-- **Not in active development**: No new features are planned
-- **Limited maintenance**: No long-term maintenance commitment
-- **No responsibility**: The repository owner does not take responsibility for this codebase
-- **Original testing only**: Code was tested by the original developer on **rev.X4 hardware only**
-- **Fork status**: This fork has **not been tested** on any hardware
+- **Active enhancement**: This fork has added substantial features for manual compliance
+- **Community-driven**: Contributions welcome for bugs, testing, documentation, and improvements
+- **Original testing limitation**: Original code was tested by the original developer on **rev.X4 hardware only**
+- **Testing needed**: Enhanced features have **not been tested** on physical hardware yet
+- **Pet safety first**: Always test thoroughly and provide alternative pet access during development
 
 ## Acceptable Contributions
 
-We welcome **limited** contributions in these areas:
+We welcome contributions in these areas:
 
 1. **Bug Fixes**: Code corrections for identified issues
-2. **Testing Reports**: Share your testing results on different hardware revisions
-3. **Documentation**: Corrections and clarifications to existing documentation
+2. **Testing Reports**: Share your testing results on different hardware revisions (critical!)
+3. **Documentation**: Corrections, clarifications, and improvements
+4. **Feature Enhancements**: Improvements that align with official manual specifications
+5. **Hardware Compatibility**: Adaptations for different PCB revisions
+6. **Test Coverage**: Additional unit tests for existing and new features
 
-## Not Accepting
+## Priority Areas
 
-- New features or enhancements
-- Architectural changes
-- Support for different microcontrollers
-- Major refactoring
+Help is especially needed for:
 
-If you want to add significant features, please consider forking the project.
+- **Hardware testing**: Testing enhanced features on actual hardware
+- **Battery monitoring**: Implementing hardware detection and functionality
+- **Timer Mode/RTC**: Implementing time-based scheduling if hardware supports it
+- **Multiple hardware revisions**: Testing and adapting for rev.X5, X6, etc.
+- **Test coverage**: Expanding the test suite (currently 73 tests)
 
 ## Reporting Bugs
 

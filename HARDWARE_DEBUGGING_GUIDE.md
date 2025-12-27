@@ -1860,7 +1860,7 @@ If you plan to add missing hardware (battery monitoring or RTC):
 
 **Document Version**: 1.1  
 **Last Updated**: December 2024  
-**Maintainer**: Community (documentation fork)  
+**Maintainer**: Community  
 **Original Hardware**: Revision X4  
 **Contributions Welcome**: GitHub Issues and Pull Requests
 

@@ -334,7 +334,11 @@ void learnCat(void)
         if((r ==0) && (cat.crc == crcRead) && (crcRead != 0)){        
             uint8_t slot = saveCat(&cat);
             if(slot>0){
-                //Saved successfully
+                //Saved successfully - beep three times per manual page 7
+                beep();
+                __delay_ms(150);
+                beep();
+                __delay_ms(150);
                 beep();
                 break;
             }

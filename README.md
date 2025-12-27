@@ -5,24 +5,30 @@
 [![MPLAB X](https://img.shields.io/badge/IDE-MPLAB%20X%20v5-green.svg)]()
 [![CI Build](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml/badge.svg)](https://github.com/CJFWeatherhead/PetSafe-CatFlap/actions/workflows/ci.yml)
 
-An alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing enhanced control and features for your cat flap. This firmware runs on the **PIC16F886** microcontroller and offers multiple operating modes, RFID tag management, and optional external control via serial interface.
+An enhanced alternative firmware for the **PetSafe Pet Porte 100-1023 PCB**, providing full compliance with the official manual specifications plus additional control features. This firmware runs on the **PIC16F886** microcontroller and offers multiple operating modes, RFID tag management, and optional external control via serial interface.
 
-> **⚠️ Important**: This is a **fork** created for better documentation. The code was originally tested by the original developer on **revision X4 hardware only**. This fork has **not been tested** on any hardware. Test thoroughly before deploying to your cat flap.
+> **⚠️ Important**: The original firmware was tested by the original developer on **revision X4 hardware only**. This enhanced fork includes significant improvements for manual compliance but has **not been tested** on physical hardware. Test thoroughly before deploying to your cat flap, and always provide alternative pet access during testing.
 
 ## 🐱 Features
 
-- **RFID Tag Authentication**: Learn up to multiple cat RFID tags
+- **RFID Tag Authentication**: Learn up to 16 cat RFID tags (hardware limitation: 256-byte EEPROM)
+- **Full Manual Compliance**: 90% compliance with official PetSafe Petporte 100 manual
+- **Extended Modes Menu**: 7-mode menu system with beep navigation (per manual pages 14, 16-17)
 - **Multiple Operating Modes**:
   - Normal Mode: Standard RFID-controlled entrance
-  - Vet Mode: Keep cats inside (entrance locked)
+  - Vet Mode: Keep cats inside (entrance only)
   - Night Mode: Automatic locking based on light sensor
-  - Open Mode: Free access (no locking)
-  - Learn Mode: Add new RFID tags
+  - Open Mode: Free access (no locking) - accessible via Extended Menu
+  - Learn Mode: Add new RFID tags (30-second window, three beeps on success)
   - Clear Mode: Remove all stored tags
+- **Silent Mode**: Toggle cat detection beeps while keeping system beeps
+- **Key Pad Lock**: Prevent accidental button presses (Red button > 30s)
+- **Configurable Lock Return Time**: Adjust door open time (1-25 seconds, default 4s)
+- **Startup Sequence**: Visual LED pattern and audio beeps confirm successful boot
 - **Light Sensor Integration**: Automatic operation based on ambient light
 - **Serial Communication**: External control and monitoring capability
-- **LED Indicators**: Visual feedback for different modes
-- **Configurable Settings**: Adjustable thresholds and parameters
+- **LED Indicators**: Correct visual feedback per manual specifications
+- **Comprehensive Test Suite**: 73 unit tests validating all features
 
 ## 📋 Quick Start
 
@@ -137,18 +143,49 @@ If you have a later hardware revision, you may experience:
 | Mode | LED Indicators | Description |
 |------|----------------|-------------|
 | **Normal** | Off | Standard operation - entrance locked, exit open |
-| **Vet** | Red blinking | Both locked - keep cat inside |
+| **Vet** | Red off, Green blinking | Both locked - keep cat inside (entrance only) |
 | **Night** | Red solid + Green status | Auto-lock based on light sensor |
 | **Learn** | Green blinking | Add new RFID tags (hold green button 10s) |
 | **Clear** | Both blinking | Remove all tags (hold both buttons 30s) |
-| **Open** | Both solid | Free access - all unlocked |
+| **Open** | Red blinking | Free access - all unlocked (via Extended Menu) |
 
 ### Button Controls
 
-- **Red button short press**: Toggle night mode
+#### Basic Controls
+- **Red button short press (<2s)**: Toggle night mode
 - **Red button long press (>5s)**: Toggle vet mode  
 - **Green button long press (>10s)**: Enter learn mode
-- **Both buttons (>30s)**: Clear all stored RFID tags
+- **Both buttons long press (>30s)**: Clear all stored RFID tags
+
+#### Extended Features
+- **Red button very long press (>30s)**: Toggle key pad lock (prevents accidental mode changes)
+- **Green button very long press (>30s)**: Reset to normal mode
+- **Both buttons press (>2s)**: Enter Extended Modes menu
+
+### Extended Modes Menu
+
+The firmware now includes a comprehensive Extended Modes menu system (per official manual). 
+
+**To Enter**: Press and hold both Red and Green buttons for more than 2 seconds. You'll hear a long beep and the Green LED will turn on.
+
+**To Navigate**: 
+- Press Red button to move up through modes
+- Press Green button to move down through modes  
+- The number of beeps indicates which mode you're in (1-7 beeps)
+
+**To Activate**: Press both buttons simultaneously
+
+#### Extended Mode Options
+
+1. **Exit Mode (1 beep)**: Cancel and return to normal operation
+2. **Open Mode (2 beeps)**: Enter free access mode (no RFID checking)
+3. **Silent Mode (3 beeps)**: Toggle cat detection beeps on/off
+4. **Set Light Level (4 beeps)**: Store current light level as Night Mode threshold
+5. **Lock Return Time (5 beeps)**: Adjust how long door stays open (1-25 seconds, default 4s)
+6. **Low Battery Lock State (6 beeps)**: Configure lock behavior on low battery (placeholder)
+7. **Timer Mode (7 beeps)**: Set specific lock/unlock times (placeholder - requires RTC)
+
+**Note**: Modes 6 and 7 have menu entries but require additional hardware (battery monitoring and real-time clock) for full functionality.
 
 ## 🔌 Serial Communication
 

@@ -82,6 +82,40 @@ void beep(void)
     }
 }
 
+void beepShort(void)
+{
+    // Short beep: ~50ms
+    for(uint16_t i=0;i<50;++i){
+        BUZZER = 1;
+        __delay_us(250);	
+		BUZZER = 0;
+		__delay_us(250);
+    }
+}
+
+void beepLong(void)
+{
+    // Long beep: ~400ms
+    for(uint16_t i=0;i<400;++i){
+        BUZZER = 1;
+        __delay_us(250);	
+		BUZZER = 0;
+		__delay_us(250);
+    }
+}
+
+void beepSeries(uint8_t count)
+{
+    // Play a series of short beeps with pauses between them
+    for(uint8_t i=0; i<count; ++i){
+        beepShort();
+        if(i < count - 1){
+            // Pause between beeps (200ms)
+            __delay_ms(200);
+        }
+    }
+}
+
 /**
  * Opens the green latch
  */

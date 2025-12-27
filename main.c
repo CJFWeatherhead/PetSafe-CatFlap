@@ -12,9 +12,9 @@
 #include "cat.h"
 
 /**
- * time to keep door open
+ * time to keep door open (default 4 seconds per manual)
  */
-#define OPEN_TIME 5000
+#define OPEN_TIME 4000
 
 /**
  * Number of milliseconds
@@ -34,6 +34,17 @@
 #define MODE_LEARN 4
 #define MODE_CLEAR 5
 #define MODE_OPEN 6
+
+/**
+ * Extended modes (accessed via both buttons > 2s)
+ */
+#define EXT_MODE_EXIT 1
+#define EXT_MODE_OPEN 2
+#define EXT_MODE_SILENT 3
+#define EXT_MODE_LIGHT_LEVEL 4
+#define EXT_MODE_LOCK_TIME 5
+#define EXT_MODE_LOW_BATTERY 6
+#define EXT_MODE_TIMER 7
 
 /**
  * Defines for button handling
@@ -57,6 +68,15 @@ static bool inLocked = false;
 static uint16_t light = 0;
 //Light sensor threshold
 static uint16_t lightThd = 0;
+//Extended modes state
+static bool inExtendedMode = false;
+static uint8_t currentExtendedMode = EXT_MODE_EXIT;
+//Silent mode state (disables beeps when cat detected)
+static bool silentMode = false;
+//Lock return time in milliseconds (default 4 seconds per manual)
+static uint16_t lockReturnTime = OPEN_TIME;
+//Key pad lock state (prevents button presses)
+static bool keyPadLocked = false;
 
 /**
  * Switch flap operating mode
@@ -150,6 +170,156 @@ uint8_t handleButtons(ms_t *time){
 }
 
 /**
+ * Enter extended modes menu
+ * Shows green LED and plays long beep
+ */
+void enterExtendedMode(void){
+    inExtendedMode = true;
+    currentExtendedMode = EXT_MODE_EXIT;
+    beepLong();
+    GREEN_LED = 1;
+}
+
+/**
+ * Navigate extended modes (Red=up, Green=down)
+ * Plays beeps to indicate current mode number
+ */
+void navigateExtendedMode(bool up){
+    if(!inExtendedMode) return;
+    
+    if(up){
+        // Red button - go up
+        currentExtendedMode++;
+        if(currentExtendedMode > EXT_MODE_TIMER){
+            currentExtendedMode = EXT_MODE_EXIT;
+        }
+    }else{
+        // Green button - go down
+        if(currentExtendedMode <= EXT_MODE_EXIT){
+            currentExtendedMode = EXT_MODE_TIMER;
+        }else{
+            currentExtendedMode--;
+        }
+    }
+    
+    // Play beeps to indicate current mode
+    beepSeries(currentExtendedMode);
+}
+
+/**
+ * Activate the currently selected extended mode
+ */
+void activateExtendedMode(void){
+    if(!inExtendedMode) return;
+    
+    switch(currentExtendedMode){
+        case EXT_MODE_EXIT:
+            // Exit extended modes - return to normal operation
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            beepShort();
+            break;
+            
+        case EXT_MODE_OPEN:
+            // Enter Open Mode (free access)
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            switchMode(MODE_OPEN);
+            beepShort();
+            break;
+            
+        case EXT_MODE_SILENT:
+            // Toggle silent mode
+            silentMode = !silentMode;
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            beepShort();
+            break;
+            
+        case EXT_MODE_LIGHT_LEVEL:
+            // Set current light level as threshold
+            lightThd = light;
+            setConfiguration(LIGHT_CFG, lightThd);
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            beepShort();
+            break;
+            
+        case EXT_MODE_LOCK_TIME:
+            // Enter lock return time adjustment mode
+            // Green LED stays on, Red LED flashes
+            // User holds green button to set time (1-25 seconds)
+            {
+                ms_t startTime = millis();
+                bool buttonHeld = false;
+                RED_LED = 1; // Indicate we're in adjustment mode
+                
+                // Wait for user to press and hold green button
+                while(inExtendedMode){
+                    ms_t elapsed = millis() - startTime;
+                    
+                    // Flash red LED while waiting
+                    RED_LED = ((millis()>>8) & 0x1);
+                    
+                    if(!GREEN_BTN){
+                        // Green button pressed - start timing
+                        if(!buttonHeld){
+                            buttonHeld = true;
+                            startTime = millis();
+                            beepLong(); // Continuous beep while held
+                        }
+                        // Update time while button held (max 25 seconds)
+                        elapsed = millis() - startTime;
+                        if(elapsed > 25000){
+                            elapsed = 25000;
+                        }
+                        lockReturnTime = elapsed > 1000 ? elapsed : 1000;
+                    }else if(buttonHeld){
+                        // Button released - save setting
+                        inExtendedMode = false;
+                        GREEN_LED = 0;
+                        RED_LED = 0;
+                        break;
+                    }
+                    
+                    // Timeout after 30 seconds of inactivity
+                    if(elapsed > 30000 && !buttonHeld){
+                        inExtendedMode = false;
+                        GREEN_LED = 0;
+                        RED_LED = 0;
+                        break;
+                    }
+                }
+            }
+            break;
+            
+        case EXT_MODE_LOW_BATTERY:
+            // Configure low battery lock state
+            // Not fully implemented - requires battery monitoring hardware
+            // For now, just exit with beep
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            beepShort();
+            break;
+            
+        case EXT_MODE_TIMER:
+            // Timer mode - set lock/unlock times
+            // Not fully implemented - requires RTC or time tracking
+            // For now, just exit with beep
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            beepShort();
+            break;
+            
+        default:
+            // Unknown mode - exit
+            inExtendedMode = false;
+            GREEN_LED = 0;
+            break;
+    }
+}
+
+/**
  * Learn a new cat and save it to eeprom
  */
 void learnCat(void)
@@ -164,7 +334,11 @@ void learnCat(void)
         if((r ==0) && (cat.crc == crcRead) && (crcRead != 0)){        
             uint8_t slot = saveCat(&cat);
             if(slot>0){
-                //Saved successfully
+                //Saved successfully - beep three times per manual page 7
+                beep();
+                __delay_ms(150);
+                beep();
+                __delay_ms(150);
                 beep();
                 break;
             }
@@ -304,6 +478,48 @@ void main(void)
     ms_t btnPress = 0;    
     /* Initialize I/O and Peripherals for application */
     InitApp();
+    
+    // Startup sequence: visual and audio feedback to confirm boot
+    // LED: Both LEDs solid for 1 second, then 2 alternating flashes (Green, Red, Green, Red)
+    RED_LED = 1;
+    GREEN_LED = 1;
+    __delay_ms(1000);
+    RED_LED = 0;
+    GREEN_LED = 0;
+    __delay_ms(100);
+    
+    // Two alternating flashes: Green, Red, Green, Red (200ms each)
+    for(uint8_t i=0; i<2; ++i){
+        GREEN_LED = 1;
+        __delay_ms(200);
+        GREEN_LED = 0;
+        __delay_ms(50);
+        RED_LED = 1;
+        __delay_ms(200);
+        RED_LED = 0;
+        __delay_ms(50);
+    }
+    
+    // Startup beep sequence: two short, one long
+    beepShort();
+    __delay_ms(150);
+    beepShort();
+    __delay_ms(150);
+    beepLong();
+    
+    // Check if any cats are programmed - flash both LEDs if not (per manual page 18)
+    if(!anyCatsProgrammed()){
+        __delay_ms(500);
+        for(uint8_t i=0; i<10; ++i){
+            RED_LED = 1;
+            GREEN_LED = 1;
+            __delay_ms(250);
+            RED_LED = 0;
+            GREEN_LED = 0;
+            __delay_ms(250);
+        }
+    }
+    
     lightThd = getConfiguration(LIGHT_CFG);    
     // Initialize EEPROM if unprogrammed or invalid (0xFFFF=unprogrammed, >1023=out of range)
     if(lightThd > 1023){
@@ -327,9 +543,9 @@ void main(void)
                 GREEN_LED = 0;
                 break;
             case MODE_VET:
-                GREEN_LED = 0;
-                //Blink red led
-                RED_LED = ((ms>>9) & 0x1);
+                RED_LED = 0;
+                //Blink green led (per manual page 18: Off, Flash)
+                GREEN_LED = ((ms>>9) & 0x1);
                 doOpen = true;
                 break;
             case MODE_CLOSED:
@@ -347,8 +563,9 @@ void main(void)
                 switchMode(MODE_NORMAL);
                 break;
             case MODE_OPEN:
-                RED_LED = 1;
-                GREEN_LED = 1;
+                //Blink red led only (per manual page 18: Flash, Off)
+                RED_LED = ((ms>>9) & 0x1);
+                GREEN_LED = 0;
                 doOpen = false;
                 break;
             case MODE_NIGHT:
@@ -376,10 +593,12 @@ void main(void)
             r = readRFID(&c.id[0], 6, &c.crc, &crcRead);
             if(r == 0 && catExists(&c, &crcRead)){
                 //Read ok and found in EEPROM
-                beep();
+                if(!silentMode){
+                    beep(); // Only beep if not in silent mode
+                }
                 inLocked = lockGreenLatch(false);
                 printCat(&c);
-                __delay_ms(OPEN_TIME);
+                __delay_ms(lockReturnTime); // Use configurable lock return time
                 inLocked = lockGreenLatch(true);                
             }
             c.crc = 0x0;
@@ -390,30 +609,74 @@ void main(void)
         //Handle buttons modes
         switch(handleButtons(&btnPress)){
             case GREEN_PRESS :
-                if(btnPress>10000){
+                if(keyPadLocked){
+                    // Buttons locked - ignore
+                    break;
+                }
+                if(btnPress>30000){
+                    // Reset to Normal Mode (per manual: Green button > 30s)
+                    beepSeries(5); // Series of beeps
+                    beepLong();    // Followed by long beep
+                    switchMode(MODE_NORMAL);
+                    // Turn off all LEDs to confirm
+                    RED_LED = 0;
+                    GREEN_LED = 0;
+                }else if(inExtendedMode){
+                    // In extended mode - navigate down
+                    navigateExtendedMode(false);
+                }else if(btnPress>10000){
+                    // Normal mode - enter learn mode
                     switchMode(MODE_LEARN);
                 }
                 break;
             case RED_PRESS :
-                if(btnPress>5000){
+                if(btnPress>30000){
+                    // Toggle Key Pad Lock (per manual: Red button > 30s)
+                    keyPadLocked = !keyPadLocked;
+                    beepSeries(5); // Series of beeps to confirm
+                    break;
+                }
+                if(keyPadLocked){
+                    // Buttons locked - ignore (except for unlock above)
+                    break;
+                }
+                if(inExtendedMode){
+                    // In extended mode - navigate up
+                    navigateExtendedMode(true);
+                }else if(btnPress>5000){
+                    // Toggle Vet mode (per manual: long press >5s)
                     if(opMode == MODE_VET){
                         switchMode(MODE_NORMAL);
+                        beepShort(); // Beep on exit
                     }else{
                         switchMode(MODE_VET);
+                        beepShort(); // Beep on entry
                     }
                 }else if(btnPress<2000){
+                    // Toggle Night mode (per manual: press <2s)
                     if(opMode == MODE_NIGHT){
                         switchMode(MODE_NORMAL);
+                        beepShort(); // Beep on exit
                     }else{
-                        switchMode(MODE_NIGHT);                        
+                        switchMode(MODE_NIGHT);
+                        beepShort(); // Beep on entry
                     }
                 }
                 break;
             case BOTH_PRESS :
-                /*if((btnPress>2000) && (btnPress<30000)){
-                    //TODO: Extended mode, to be implemented
-                }else*/ if(btnPress>30000){
+                if(keyPadLocked && btnPress<30000){
+                    // Buttons locked - ignore (except for long operations)
+                    break;
+                }
+                if(btnPress>30000){
+                    // Clear all cats (per manual: both buttons > 30s)
                     switchMode(MODE_CLEAR);                    
+                }else if(inExtendedMode){
+                    // In extended mode - activate current mode
+                    activateExtendedMode();
+                }else if(btnPress>2000){
+                    // Enter Extended Modes (per manual: both buttons > 2s)
+                    enterExtendedMode();
                 }
                 break;              
         }

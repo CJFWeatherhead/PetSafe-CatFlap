@@ -95,9 +95,25 @@ void initPeripherials(void);
 uint16_t getLightSensor(void);
 
 /**
- * Beep
+ * Beep - Standard beep for cat detection
  */
 void beep(void);
+
+/**
+ * Short beep - Used for mode confirmations
+ */
+void beepShort(void);
+
+/**
+ * Long beep - Used for extended mode entry and exits
+ */
+void beepLong(void);
+
+/**
+ * Series of beeps - Used for indicating mode number
+ * @param count Number of beeps (1-7 for extended modes)
+ */
+void beepSeries(uint8_t count);
 
 /**
  * Opens/close the green latch
